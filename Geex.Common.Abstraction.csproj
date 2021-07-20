@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <Version>1.0.2</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="AutoEquality" Version="0.5.4" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.1.0" />
+    <PackageReference Include="Autofac.Extras.DynamicProxy" Version="6.0.0" />
+    <PackageReference Include="Casbin.NET" Version="1.4.0" />
+    <PackageReference Include="HotChocolate.AspNetCore" Version="11.3.1" />
+    <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="11.3.1" />
+    <PackageReference Include="HotChocolate.AspNetCore.Playground" Version="10.5.5" />
+    <PackageReference Include="HotChocolate.AspNetCore.Voyager" Version="10.5.5" />
+    <PackageReference Include="HotChocolate.Data" Version="11.3.1" />
+    <PackageReference Include="HotChocolate.Language" Version="11.3.1" />
+    <PackageReference Include="HotChocolate.Stitching" Version="11.3.1" />
+    <PackageReference Include="HotChocolate.Stitching.Redis" Version="11.3.1" />
+    <PackageReference Include="HotChocolate.Types.Scalars" Version="11.3.1" />
+    <PackageReference Include="HotChocolate.Types.Scalars.Upload" Version="11.3.1" />
+    <PackageReference Include="Humanizer.Core" Version="2.8.26" />
+    <PackageReference Include="ImpromptuInterface" Version="7.0.1" />
+    <PackageReference Include="MediatR" Version="9.0.0" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.10" />
+    <PackageReference Include="Microsoft.Extensions.DiagnosticAdapter" Version="3.1.14" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
+    <PackageReference Include="StackExchange.Redis.Extensions.Core" Version="7.0.0" />
+    <PackageReference Include="StackExchange.Redis.Extensions.System.Text.Json" Version="7.0.0" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+    <PackageReference Include="Volo.Abp.Core" Version="3.3.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\geexbox.logging.elasticsearch\Geexbox.Logging.ElasticSearch.csproj" />
+    <ProjectReference Include="..\MongoDB.Entities\MongoDB.Entities\MongoDB.Entities.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Gql\Interceptors\" />
+  </ItemGroup>
+  <Target Name="CopyPackage" AfterTargets="Pack">
+    <Exec Command="nuget add $(ProjectDir)bin\$(Configuration)\$(PackageId).$(PackageVersion).nupkg -source $(SolutionDir)..\nuget" />
+  </Target>
+</Project>
