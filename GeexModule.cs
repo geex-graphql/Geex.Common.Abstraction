@@ -67,7 +67,10 @@ namespace Geex.Common.Abstractions
                 var method = entityMapConfig.GetMethods().First(x => x.Name == nameof(EntityMapConfig<IEntity>.Map));
                 var bsonClassMapInstance = Activator.CreateInstance(typeof(BsonClassMap<>).MakeGenericType(entityType));
                 method.Invoke(instance, new[] { bsonClassMapInstance });
-                BsonClassMap.RegisterClassMap(bsonClassMapInstance as BsonClassMap);
+                if (!BsonClassMap.IsClassMapRegistered(typeof(BsonClassMap<>).MakeGenericType(entityType)))
+                {
+                    BsonClassMap.RegisterClassMap(bsonClassMapInstance as BsonClassMap);
+                }
             }
         }
 
