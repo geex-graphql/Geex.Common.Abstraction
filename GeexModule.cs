@@ -107,6 +107,7 @@ namespace Geex.Common.Abstractions
 
         public override void PostConfigureServices(ServiceConfigurationContext context)
         {
+            context.Services.GetSingletonInstance<IRequestExecutorBuilder>().AddModuleTypes(this.GetType());
             base.PostConfigureServices(context);
         }
 
@@ -121,7 +122,6 @@ namespace Geex.Common.Abstractions
         public IRequestExecutorBuilder SchemaBuilder => this.ServiceConfigurationContext.Services.GetSingletonInstance<IRequestExecutorBuilder>();
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.GetSingletonInstance<IRequestExecutorBuilder>().AddModuleTypes(this.GetType());
             base.ConfigureServices(context);
         }
 

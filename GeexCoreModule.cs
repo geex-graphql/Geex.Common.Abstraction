@@ -50,7 +50,6 @@ namespace Geex.Common
         public override void PostConfigureServices(ServiceConfigurationContext context)
         {
             var schemaBuilder = context.Services.GetSingletonInstance<IRequestExecutorBuilder>();
-
             base.PostConfigureServices(context);
         }
 
