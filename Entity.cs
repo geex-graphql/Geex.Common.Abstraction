@@ -12,22 +12,11 @@ using MongoDB.Entities;
 
 namespace Geex.Common.Abstractions
 {
-    public abstract class Entity : IEntity, IModifiedOn
+    public abstract class Entity : MongoDB.Entities.Entity, IModifiedOn
     {
         public static ConcurrentQueue<INotification> _domainEvents = new ConcurrentQueue<INotification>();
 
-        [BsonId]
-        [ObjectId]
-        public string Id { get; set; }
-
-        string IEntity.GenerateNewId()
-        {
-            return ObjectId.GenerateNewId().ToString();
-        }
-
-        public DateTime CreatedOn { get; set; }
         public DateTime ModifiedOn { get; set; }
-        IClientSessionHandle IEntity.Session { get; set; }
 
         protected void AddDomainEvent(params INotification[] events)
         {

@@ -54,7 +54,7 @@ namespace Microsoft.Extensions.DependencyInjection
             DB.InitAsync(mongoUrl.DatabaseName, mongoSettings).Wait();
             //builder.AddScoped(x => new DbContext(transactional: true));
             builder.AddScoped<IUnitOfWork>(x => new WrapperUnitOfWork(() => x.GetService<DbContext>().CommitAsync()));
-            builder.GetSingletonInstance<ContainerBuilder>().Register<DbContext>(x => new DbContext(transactional: true)).InstancePerLifetimeScope();
+            builder.AddScoped<DbContext>(x => new DbContext(x,transactional: true));
             return builder;
         }
 
