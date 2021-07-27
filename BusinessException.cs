@@ -46,9 +46,13 @@ namespace Geex.Common.Abstractions
         /// data not found
         /// </summary>
         public static GeexExceptionType NotFound { get; } = new(nameof(NotFound), nameof(NotFound), nameof(NotFound), LogLevel.Warning);
-         /// <summary>
+        /// <summary>
         /// Unknown exception
         /// </summary>
         public static GeexExceptionType Unknown { get; } = new(nameof(Unknown), nameof(Unknown), nameof(Unknown), LogLevel.Error);
+        /// <summary>
+        /// requested data is not valid for operation
+        /// </summary>
+        public static GeexExceptionType ValidationFailed { get; } = new(nameof(ValidationFailed), nameof(ValidationFailed), nameof(ValidationFailed), LogLevel.Warning);
     }
 }

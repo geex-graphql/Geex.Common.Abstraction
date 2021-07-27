@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 using Geex.Common.Abstraction;
+using Geex.Common.Abstraction.Auditing;
 using Geex.Common.Abstraction.Gql;
 
 using HotChocolate.Types;
@@ -20,6 +22,30 @@ namespace Geex.Common.Gql.Roots
         {
             descriptor.Name(OperationTypeNames.Mutation);
             descriptor.Field("kind").Ignore();
+            if (typeof(T).IsAssignableTo<IHasAuditMutation>())
+            {
+                var mutationType = this.GetType().GetInterface("IHasAuditMutation`1");
+                var entityType = mutationType.GenericTypeArguments[0];
+                var submit = mutationType.GetMethod(nameof(IHasAuditMutation<IAuditEntity>.SubmitAsync));
+                var audit = mutationType.GetMethod(nameof(IHasAuditMutation<IAuditEntity>.AuditAsync));
+                descriptor.Field("submit" + entityType.Name.RemovePreFix("I"))
+                    .Type<BooleanType>()
+                    .Argument("id", argumentDescriptor => argumentDescriptor.Type(typeof(string)))
+                    .Resolve(resolver: async (context, token) =>
+                    {
+                        return await (submit.Invoke(this,
+                            new object?[] { context.Service<IMediator>(), context.ArgumentValue<string>("id") }) as Task<bool>);
+                    })
+                    ;
+                descriptor.Field("audit" + entityType.Name.RemovePreFix("I"))
+                    .Type<BooleanType>()
+                    .Argument("id", argumentDescriptor => argumentDescriptor.Type(typeof(string)))
+                    .Resolve(resolver: async (context, token) =>
+                    {
+                        return await (audit.Invoke(this,
+                            new object?[] { context.Service<IMediator>(), context.ArgumentValue<string>("id") }) as Task<bool>);
+                    });
+            }
             base.Configure(descriptor);
         }
     }

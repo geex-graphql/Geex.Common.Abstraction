@@ -4,6 +4,8 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Geex.Common.Abstraction;
+using Geex.Common.Abstraction.Auditing;
 using Geex.Common.Abstractions;
 using Geex.Common.Gql;
 using Geex.Common.Gql.Roots;
@@ -18,7 +20,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Utilities;
-
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -49,7 +51,6 @@ namespace Geex.Common
 
         public override void PostConfigureServices(ServiceConfigurationContext context)
         {
-            var schemaBuilder = context.Services.GetSingletonInstance<IRequestExecutorBuilder>();
             base.PostConfigureServices(context);
         }
 

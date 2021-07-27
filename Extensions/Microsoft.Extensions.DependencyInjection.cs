@@ -10,6 +10,7 @@ using Autofac;
 
 using Geex.Common;
 using Geex.Common.Abstraction;
+using Geex.Common.Abstraction.Auditing;
 using Geex.Common.Abstractions;
 using Geex.Common.Gql;
 using Geex.Common.Gql.Roots;
@@ -88,6 +89,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     }
                 }
                 var exportedTypes = gqlModuleType.Assembly.GetExportedTypes();
+
                 var extensionTypes = exportedTypes.Where(x =>
                                                          (!x.IsAbstract && AbpTypeExtensions.IsAssignableTo<ObjectTypeExtension>(x))).ToArray();
                 //schemaBuilder.AddTypes(rootTypes);
