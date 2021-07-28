@@ -1,5 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
+
+using Geex.Common.Abstraction.Auditing.Events;
 using Geex.Common.Abstractions;
+
+using MediatR;
+
+using Microsoft.Extensions.DependencyInjection;
+
 using MongoDB.Entities;
 
 namespace Geex.Common.Abstraction.Auditing
@@ -11,26 +19,26 @@ namespace Geex.Common.Abstraction.Auditing
         /// </summary>
         public AuditStatus AuditStatus { get; set; }
 
-        Task SubmitAsync()
+        async Task SubmitAsync<TEntity>()
         {
             if (this.Submittable)
             {
                 this.AuditStatus |= AuditStatus.Submitted;
+                await this.DbContext.ServiceProvider.GetRequiredService<IMediator>().Publish(new EntitySubmittedNotification<TEntity>(this.Id));
             }
             else
             {
-                throw new BusinessException(GeexExceptionType.ValidationFailed, message:"不满足上报条件, 无法上报.");
+                throw new BusinessException(GeexExceptionType.ValidationFailed, message: "不满足上报条件, 无法上报.");
             }
-            return Task.CompletedTask;
         }
 
-        Task AuditAsync()
+        async Task AuditAsync<TEntity>()
         {
             if (this.AuditStatus.HasFlag(AuditStatus.Submitted))
             {
                 this.AuditStatus |= AuditStatus.Audited;
+                await this.DbContext.ServiceProvider.GetRequiredService<IMediator>().Publish(new EntityAuditedNotification<TEntity>(this.Id));
             }
-            return Task.CompletedTask;
         }
 
         bool Submittable { get; }

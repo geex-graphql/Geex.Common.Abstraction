@@ -59,7 +59,7 @@ namespace Geex.Common.Abstraction.Auditing
         async Task<Unit> IRequestHandler<SubmitRequest<TInterface>, Unit>.Handle(SubmitRequest<TInterface> request, CancellationToken cancellationToken)
         {
             var entity = await EntityFinder.Invoke(request.Id);
-            await (entity).SubmitAsync();
+            await (entity).SubmitAsync<TEntity>();
             await entity.SaveAsync(cancellationToken);
             return Unit.Value;
         }
@@ -67,7 +67,7 @@ namespace Geex.Common.Abstraction.Auditing
         async Task<Unit> IRequestHandler<AuditRequest<TInterface>, Unit>.Handle(AuditRequest<TInterface> request, CancellationToken cancellationToken)
         {
             var entity = await EntityFinder.Invoke(request.Id);
-            await (entity).AuditAsync();
+            await (entity).AuditAsync<TEntity>();
             await entity.SaveAsync(cancellationToken);
             return Unit.Value;
         }
