@@ -8,15 +8,17 @@ using Geex.Common.Abstraction;
 using HotChocolate.Execution.Configuration;
 
 using MediatR;
-
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-
+using Microsoft.Extensions.Hosting;
 using MongoDB.Bson.Serialization;
 using MongoDB.Entities;
 
 using Volo.Abp;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.Modularity;
 
 namespace Geex.Common.Abstractions
@@ -128,7 +130,24 @@ namespace Geex.Common.Abstractions
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             DB.MigrateAsync<T>().Wait();
+            var app = context.GetApplicationBuilder();
+            var _env = context.GetEnvironment();
+            var _configuration = context.GetConfiguration();
+            app.UseCors();
+            if (_env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            app.UseCookiePolicy(new CookiePolicyOptions
+            {
+                MinimumSameSitePolicy = SameSiteMode.Strict,
+            });
+
+
+            app.UseHealthChecks("/health-check");
+
             base.OnApplicationInitialization(context);
+            app.UseGeexGraphQL();
         }
     }
 }

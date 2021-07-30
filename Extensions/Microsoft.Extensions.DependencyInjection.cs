@@ -51,10 +51,10 @@ namespace Microsoft.Extensions.DependencyInjection
             var mongoUrl = new MongoUrl(commonModuleOptions.ConnectionString) { };
             var mongoSettings = MongoClientSettings.FromUrl(mongoUrl);
             mongoSettings.ApplicationName = commonModuleOptions.AppName;
-            DB.InitAsync(mongoUrl.DatabaseName, mongoSettings).Wait();
+            DB.InitAsync(mongoUrl.DatabaseName ?? commonModuleOptions.AppName, mongoSettings).Wait();
             //builder.AddScoped(x => new DbContext(transactional: true));
             builder.AddScoped<IUnitOfWork>(x => new WrapperUnitOfWork(() => x.GetService<DbContext>().CommitAsync()));
-            builder.AddScoped<DbContext>(x => new DbContext(x,transactional: true));
+            builder.AddScoped<DbContext>(x => new DbContext(x, transactional: true));
             return builder;
         }
 

@@ -81,28 +81,5 @@ namespace Geex.Common
             context.Services.AddHealthChecks();
             base.ConfigureServices(context);
         }
-
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
-        {
-            var app = context.GetApplicationBuilder();
-            var _env = context.GetEnvironment();
-            var _configuration = context.GetConfiguration();
-            app.UseCors();
-            if (_env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            app.UseCookiePolicy(new CookiePolicyOptions
-            {
-                MinimumSameSitePolicy = SameSiteMode.Strict,
-            });
-
-
-            app.UseHealthChecks("/health-check");
-
-            base.OnApplicationInitialization(context);
-            app.UseGeexGraphQL();
-
-        }
     }
 }
