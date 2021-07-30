@@ -9,6 +9,7 @@ using HotChocolate.Execution.Configuration;
 
 using MediatR;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -124,6 +125,15 @@ namespace Geex.Common.Abstractions
         public IRequestExecutorBuilder SchemaBuilder => this.ServiceConfigurationContext.Services.GetSingletonInstance<IRequestExecutorBuilder>();
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+             var env = context.Services.GetSingletonInstance<IWebHostEnvironment>();
+            context.Services.AddCors(options =>
+            {
+                if (env.IsDevelopment())
+                {
+                    options.AddDefaultPolicy(x =>
+                        x.SetIsOriginAllowed(x => true).AllowAnyHeader().AllowAnyMethod().AllowCredentials());
+                }
+            });
             base.ConfigureServices(context);
         }
 
