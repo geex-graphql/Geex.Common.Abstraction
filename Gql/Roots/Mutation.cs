@@ -21,7 +21,11 @@ namespace Geex.Common.Gql.Roots
         protected override void Configure(IObjectTypeDescriptor<T> descriptor)
         {
             descriptor.Name(OperationTypeNames.Mutation);
-            descriptor.Field("kind").Ignore();
+            descriptor.Field(x=>x.Kind).Ignore();
+            descriptor.Field(x=>x.Scope).Ignore();
+            descriptor.Field(x=>x.Name).Ignore();
+            descriptor.Field(x=>x.Description).Ignore();
+            descriptor.Field(x=>x.ContextData).Ignore();
             if (typeof(T).IsAssignableTo<IHasAuditMutation>())
             {
                 var mutationType = this.GetType().GetInterface("IHasAuditMutation`1");
