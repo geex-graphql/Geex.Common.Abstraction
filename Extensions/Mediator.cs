@@ -17,7 +17,18 @@ namespace Mediator
 {
     public static class MediatorExtensions
     {
+        /// <summary>
+        /// 映射缓存
+        /// </summary>
         static ConcurrentDictionary<Type, Dictionary<string, PropertyInfo>> mapDictionary = new();
+        /// <summary>
+        /// 根据属性名称反射全量替换属性值
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="value"></param>
+        /// <param name="target"></param>
+        /// <param name="ignoredPropNames">需要忽略的属性列表</param>
         public static void SetEntity<T, TEntity>(this T value, TEntity target, params string[] ignoredPropNames) where T : IBaseRequest where TEntity : Entity
         {
             var cachedSrcMap = mapDictionary.GetOrAdd(typeof(T), x => x.GetProperties(BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.Public).ToDictionary(y => y.Name, y => y));
