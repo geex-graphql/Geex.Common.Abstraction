@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Geex.Common.Abstractions;
+using StackExchange.Redis.Extensions.Core.Configuration;
 
 namespace Geex.Common.Abstraction
 {
@@ -12,5 +13,6 @@ namespace Geex.Common.Abstraction
     {
         public string ConnectionString { get; set; } = "mongodb://localhost:27017/geex";
         public string AppName { get; set; } = "geex";
+        public RedisConfiguration? Redis { get; set; }
     }
 }

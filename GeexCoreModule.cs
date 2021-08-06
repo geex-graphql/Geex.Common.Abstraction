@@ -32,7 +32,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using MongoDB.Bson;
-
+using StackExchange.Redis.Extensions.Core;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Modularity;
@@ -58,6 +58,7 @@ namespace Geex.Common
         {
             context.Services.AddStorage();
             var schemaBuilder = context.Services.AddGraphQLServer();
+            context.Services.AddStackExchangeRedisExtensions();
             context.Services.AddInMemorySubscriptions();
             context.Services.AddSingleton(schemaBuilder);
             schemaBuilder.AddConvention<ITypeInspector>(typeof(ClassEnumTypeConvention))
