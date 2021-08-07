@@ -2,10 +2,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+
 using ImpromptuInterface;
+
 using MoreLinq;
 
 namespace Geex.Common.Json
@@ -159,6 +162,16 @@ namespace Geex.Common.Json
                     settingsCopy.Converters.RemoveAll(x => x is DynamicJsonConverter);
                     writer.WriteRaw(JsonSerializer.Serialize(value, settingsCopy));
                 }
+                //else if (value is IEnumerable enumerable)
+                //{
+                //    writer.WriteStartArray();
+                //    var enumerator = enumerable.GetEnumerator();
+                //    while (enumerator.MoveNext())
+                //    {
+                //        writer.WriteRaw(JsonSerializer.Serialize(enumerator.Current, enumerator.Current.GetType(), options));
+                //    }
+                //    writer.WriteEndArray();
+                //}
                 else
                 {
                     writer.WriteRaw(JsonSerializer.Serialize(value, value.GetType(), options));

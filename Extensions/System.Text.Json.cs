@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Converters;
 using System.Text.Unicode;
+using Geex.Common.Abstraction.Json;
 using Geex.Common.Abstractions;
 using Geex.Common.Json;
 
@@ -21,12 +22,12 @@ namespace System.Text.Json
         }
         static Json()
         {
-            var encoderSettings = new TextEncoderSettings();
-            encoderSettings.AllowRange(UnicodeRanges.All);
-            DefaultSerializeSettings.Encoder = JavaScriptEncoder.Create(encoderSettings);
+            DefaultSerializeSettings.Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
             DefaultSerializeSettings.PropertyNameCaseInsensitive = true;
             DefaultSerializeSettings.Converters.Add(new JsonStringEnumConverter());
             DefaultSerializeSettings.Converters.Add(new EnumerationConverter());
+            DefaultSerializeSettings.Converters.Add(new ExceptionConverter());
+            DefaultSerializeSettings.Converters.Add(new GqlSyntaxNodeConverter());
             DefaultSerializeSettings.Converters.Add(new DynamicJsonConverter());
             DefaultSerializeSettings.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
         }

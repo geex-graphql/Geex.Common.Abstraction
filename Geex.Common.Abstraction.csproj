@@ -5,7 +5,7 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <Version>1.0.2</Version>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AutoEquality" Version="0.5.4" />
@@ -29,6 +29,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.10" />
     <PackageReference Include="Microsoft.Extensions.DiagnosticAdapter" Version="3.1.14" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
+    <PackageReference Include="morelinq" Version="3.3.2" />
     <PackageReference Include="StackExchange.Redis.Extensions.Core" Version="7.0.0" />
     <PackageReference Include="StackExchange.Redis.Extensions.System.Text.Json" Version="7.0.0" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
@@ -36,7 +37,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\geexbox.logging.elasticsearch\Geexbox.Logging.ElasticSearch.csproj" />
     <ProjectReference Include="..\MongoDB.Entities\MongoDB.Entities\MongoDB.Entities.csproj" />
   </ItemGroup>
 
