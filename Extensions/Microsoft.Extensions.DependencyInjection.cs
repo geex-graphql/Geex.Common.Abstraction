@@ -32,6 +32,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 
 using MongoDB.Bson;
@@ -116,12 +117,12 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 foreach (var socketInterceptor in exportedTypes.Where(x => AbpTypeExtensions.IsAssignableTo<ISocketSessionInterceptor>(x)).ToList())
                 {
-                    schemaBuilder.ConfigureSchemaServices(s => s.Add(ServiceDescriptor.Scoped(typeof(ISocketSessionInterceptor), socketInterceptor)));
+                    schemaBuilder.ConfigureSchemaServices(s => s.TryAdd(ServiceDescriptor.Scoped(typeof(ISocketSessionInterceptor), socketInterceptor)));
                 }
 
                 foreach (var requestInterceptor in exportedTypes.Where(x => AbpTypeExtensions.IsAssignableTo<IHttpRequestInterceptor>(x)).ToList())
                 {
-                    schemaBuilder.ConfigureSchemaServices(s => s.Add(ServiceDescriptor.Scoped(typeof(IHttpRequestInterceptor), requestInterceptor)));
+                    schemaBuilder.ConfigureSchemaServices(s => s.TryAdd(ServiceDescriptor.Scoped(typeof(IHttpRequestInterceptor), requestInterceptor)));
                 }
             }
             return schemaBuilder;

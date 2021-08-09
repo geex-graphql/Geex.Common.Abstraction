@@ -4,10 +4,13 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+
 using Geex.Common.Abstraction.Bson;
+
 using JetBrains.Annotations;
 
 using Microsoft.Extensions.DependencyInjection;
+
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace Geex.Common.Abstractions
@@ -61,10 +64,14 @@ namespace Geex.Common.Abstractions
 
         private static IEnumerable<TEnum> GetAllOptions()
         {
-            IEnumerable<Type> enumTypes = Assembly
-        .GetEntryAssembly()
+            var entryAssembly = Assembly
+                    .GetEntryAssembly();
+            
+            IEnumerable<Type> enumTypes = entryAssembly
         .GetReferencedAssemblies()
         .Select(Assembly.Load)
+        .Concat(GeexModule.KnownModuleAssembly)
+        .Distinct()
         .SelectMany(x => x.DefinedTypes).Where(x => x.IsAssignableTo(typeof(TEnum))).Concat(new[] { typeof(TEnum) }).Distinct();
 
             List<TEnum> options = new List<TEnum>();
