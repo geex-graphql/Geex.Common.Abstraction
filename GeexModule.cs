@@ -8,6 +8,7 @@ using Geex.Common.Abstraction;
 using HotChocolate.Execution.Configuration;
 
 using MediatR;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -15,6 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+
 using MongoDB.Bson.Serialization;
 using MongoDB.Entities;
 
@@ -68,9 +70,10 @@ namespace Geex.Common.Abstractions
                 var entityType = entityMapConfig.BaseType!.GetGenericArguments().First();
                 var instance = Activator.CreateInstance(entityMapConfig);
                 var method = entityMapConfig.GetMethods().First(x => x.Name == nameof(EntityMapConfig<IEntity>.Map));
-                var bsonClassMapInstance = Activator.CreateInstance(typeof(BsonClassMap<>).MakeGenericType(entityType));
+                var bsonClassMapType = typeof(BsonClassMap<>).MakeGenericType(entityType);
+                var bsonClassMapInstance = Activator.CreateInstance(bsonClassMapType);
                 method.Invoke(instance, new[] { bsonClassMapInstance });
-                if (!BsonClassMap.IsClassMapRegistered(typeof(BsonClassMap<>).MakeGenericType(entityType)))
+                if (!BsonClassMap.IsClassMapRegistered(entityType))
                 {
                     BsonClassMap.RegisterClassMap(bsonClassMapInstance as BsonClassMap);
                 }
@@ -117,15 +120,15 @@ namespace Geex.Common.Abstractions
     }
     public class GeexModule : AbpModule
     {
+        public IRequestExecutorBuilder SchemaBuilder => this.ServiceConfigurationContext.Services.GetSingletonInstance<IRequestExecutorBuilder>();
         public static HashSet<Assembly> KnownModuleAssembly { get; } = new HashSet<Assembly>();
     }
 
     public abstract class GeexEntryModule<T> : GeexModule<T> where T : GeexModule
     {
-        public IRequestExecutorBuilder SchemaBuilder => this.ServiceConfigurationContext.Services.GetSingletonInstance<IRequestExecutorBuilder>();
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-             var env = context.Services.GetSingletonInstance<IWebHostEnvironment>();
+            var env = context.Services.GetSingletonInstance<IWebHostEnvironment>();
             context.Services.AddCors(options =>
             {
                 if (env.IsDevelopment())
