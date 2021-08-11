@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <Version>1.0.2</Version>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AutoEquality" Version="0.5.4" />
