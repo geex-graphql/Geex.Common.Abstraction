@@ -113,7 +113,7 @@ namespace Geex.Common.Abstractions
 
         public override void PostConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.GetSingletonInstance<IRequestExecutorBuilder>().AddModuleTypes(this.GetType());
+            context.Services.GetSingletonInstanceOrNull<IRequestExecutorBuilder>()?.AddModuleTypes(this.GetType());
             base.PostConfigureServices(context);
         }
 
