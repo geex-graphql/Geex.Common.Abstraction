@@ -12,9 +12,12 @@
         public static GeexClaimType Expires { get; } = new GeexClaimType(nameof(Expires), _Expires);
         public const string _Avatar = "avatar";
         public static GeexClaimType Avatar { get; } = new GeexClaimType(nameof(Avatar), _Avatar);
+        public const string _FullName = "fullname";
+        public static GeexClaimType FullName { get; } = new GeexClaimType(nameof(FullName), _FullName);
+
         public GeexClaimType(string name, string value) : base(name, value)
         {
         }
-        
+
     }
 }

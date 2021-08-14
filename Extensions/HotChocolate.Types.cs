@@ -12,6 +12,8 @@ using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
+using MongoDB.Entities;
+
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types
 {
@@ -30,6 +32,24 @@ namespace HotChocolate.Types
             field.Type(method.ReturnType);
             field = field.ResolveWith(propertyOrMethod);
             return field;
+        }
+
+        public static void ConfigEntity<T>(
+            this IObjectTypeDescriptor<T> @this)
+        {
+            var queryableProps = typeof(T).GetProperties().Where(x => x.CanRead && !x.CanWrite);
+            foreach (var queryableProp in queryableProps)
+            {
+                @this.Field(queryableProp).Use(next => async context =>
+             {
+                 var entity = context.Parent<IEntity>();
+                 if (entity is { DbContext: null })
+                 {
+                     context.Service<DbContext>().Attach(entity);
+                 }
+                 await next(context);
+             });
+            }
         }
     }
 }

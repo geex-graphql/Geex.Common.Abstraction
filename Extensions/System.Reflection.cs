@@ -27,7 +27,7 @@ namespace System.Reflection
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="obj"/> is null.</exception>
         public static IDictionary<string, object> ToDictionary(this object obj)
         {
-            
+
             if (obj == null)
                 throw new ArgumentNullException("obj");
 
@@ -43,6 +43,15 @@ namespace System.Reflection
             }
 
             return props.ToDictionary(x => x.Name, x => x.GetValue(obj, null));
+        }
+
+        public static bool IsAutoProperty(this PropertyInfo prop)
+        {
+            if (!prop.CanWrite || !prop.CanRead)
+                return false;
+
+            return prop.DeclaringType.GetFields(BindingFlags.NonPublic | BindingFlags.Instance)
+                                     .Any(f => f.Name.Contains("<" + prop.Name + ">"));
         }
     }
 
