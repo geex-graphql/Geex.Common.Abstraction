@@ -74,7 +74,7 @@ namespace Geex.Common
                 .AddQueryType()
                 .AddMutationType()
                 .AddSubscriptionType()
-                .BindRuntimeType<ObjectId, ObjectIdType>()
+                .AddCommonTypes()
                 .OnSchemaError((ctx, err) => { throw new Exception("schema error", err); });
             context.Services.AddHttpContextAccessor();
             context.Services.AddObjectAccessor<IApplicationBuilder>();
