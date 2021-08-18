@@ -12,6 +12,7 @@ namespace Geex.Common.Abstraction.User
     {
         string PhoneNumber { get; set; }
         string UserName { get; set; }
+        public bool IsEnable { get; set; }
         string Email { get; set; }
     }
 }
