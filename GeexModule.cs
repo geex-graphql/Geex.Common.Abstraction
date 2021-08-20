@@ -142,7 +142,7 @@ namespace Geex.Common.Abstractions
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            DB.MigrateAsync<T>().Wait();
+            context.ServiceProvider.GetService<DbContext>().MigrateAsync<T>().Wait();
             var app = context.GetApplicationBuilder();
             var _env = context.GetEnvironment();
             var _configuration = context.GetConfiguration();
