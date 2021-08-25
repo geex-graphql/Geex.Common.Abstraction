@@ -34,20 +34,20 @@ namespace Geex.Common.Gql.Roots
                 var audit = mutationType.GetMethod(nameof(IHasAuditMutation<IAuditEntity>.AuditAsync));
                 descriptor.Field("submit" + entityType.Name.RemovePreFix("I"))
                     .Type<BooleanType>()
-                    .Argument("id", argumentDescriptor => argumentDescriptor.Type(typeof(string)))
+                    .Argument("ids", argumentDescriptor => argumentDescriptor.Type(typeof(string[])))
                     .Resolve(resolver: async (context, token) =>
                     {
                         return await (submit.Invoke(this,
-                            new object?[] { context.Service<IMediator>(), context.ArgumentValue<string>("id") }) as Task<bool>);
+                            new object?[] { context.Service<IMediator>(), context.ArgumentValue<string[]>("ids") }) as Task<bool>);
                     })
                     ;
                 descriptor.Field("audit" + entityType.Name.RemovePreFix("I"))
                     .Type<BooleanType>()
-                    .Argument("id", argumentDescriptor => argumentDescriptor.Type(typeof(string)))
+                    .Argument("ids", argumentDescriptor => argumentDescriptor.Type(typeof(string[])))
                     .Resolve(resolver: async (context, token) =>
                     {
                         return await (audit.Invoke(this,
-                            new object?[] { context.Service<IMediator>(), context.ArgumentValue<string>("id") }) as Task<bool>);
+                            new object?[] { context.Service<IMediator>(), context.ArgumentValue<string[]>("ids") }) as Task<bool>);
                     });
             }
             base.Configure(descriptor);

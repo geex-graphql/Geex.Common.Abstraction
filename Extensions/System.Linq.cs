@@ -18,6 +18,11 @@ namespace System.Linq
 
             return str[..prefixLength];
         }
-
+        //public static List<TSource> ToList<TSource>(this IQueryable<TSource> source)
+        //{
+        //    if (source == null)
+        //        throw new ArgumentNullException(nameof(source));
+        //    return !(source is IIListProvider<TSource> ilistProvider) ? new List<TSource>(source) : ilistProvider.ToList();
+        //}
     }
 }
