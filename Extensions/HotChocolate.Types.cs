@@ -49,8 +49,8 @@ namespace HotChocolate.Types
             //@this.Ignore(x => x.GenerateNewId());
             if (typeof(T).IsAssignableTo<IAuditEntity>())
             {
-                @this.Field((IAuditEntity x) => x.AuditStatus);
-                @this.Field((IAuditEntity x) => x.Submittable);
+                @this.Field(x => ((IAuditEntity)x).AuditStatus);
+                @this.Field(x => ((IAuditEntity)x).Submittable);
             }
             var queryableProps = typeof(T).GetProperties().Where(x => x.CanRead && !x.CanWrite);
             foreach (var queryableProp in queryableProps)
