@@ -12,6 +12,7 @@ namespace Geex.Common.Abstraction
     public class GeexCoreModuleOptions : IGeexModuleOption<GeexCoreModule>
     {
         public string ConnectionString { get; set; } = "mongodb://localhost:27017/geex";
+        public string Host { get; set; } = "http://localhost:8000";
         public string AppName { get; set; } = "geex";
         public RedisConfiguration? Redis { get; set; }
     }

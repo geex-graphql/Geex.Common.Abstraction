@@ -43,6 +43,7 @@
 
   <ItemGroup>
     <Folder Include="Gql\Interceptors\" />
+    <Folder Include="User\" />
   </ItemGroup>
   <Target Name="CopyPackage" AfterTargets="Pack">
     <Exec Command="nuget add $(ProjectDir)bin\$(Configuration)\$(PackageId).$(PackageVersion).nupkg -source $(SolutionDir)..\nuget" />
