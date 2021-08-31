@@ -24,7 +24,7 @@ namespace Geex.Common.Abstraction.Auditing
             if (this.Submittable)
             {
                 this.AuditStatus |= AuditStatus.Submitted;
-                await this.DbContext.ServiceProvider.GetRequiredService<IMediator>().Publish(new EntitySubmittedNotification<TEntity>(this.Id));
+                await this.DbContext.ServiceProvider.GetRequiredService<IMediator>().Publish(new EntitySubmittedNotification<TEntity>(this));
             }
             else
             {
@@ -37,7 +37,29 @@ namespace Geex.Common.Abstraction.Auditing
             if (this.AuditStatus.HasFlag(AuditStatus.Submitted))
             {
                 this.AuditStatus |= AuditStatus.Audited;
-                await this.DbContext.ServiceProvider.GetRequiredService<IMediator>().Publish(new EntityAuditedNotification<TEntity>(this.Id));
+                await this.DbContext.ServiceProvider.GetRequiredService<IMediator>().Publish(new EntityAuditedNotification<TEntity>(this));
+            }
+        }
+
+        async Task UnsubmitAsync<TEntity>()
+        {
+            if (this.AuditStatus.HasFlag(AuditStatus.Submitted))
+            {
+                this.AuditStatus ^= AuditStatus.Submitted;
+                await this.DbContext.ServiceProvider.GetRequiredService<IMediator>().Publish(new EntityUnsubmittedNotification<TEntity>(this));
+            }
+            else
+            {
+                throw new BusinessException(GeexExceptionType.ValidationFailed, message: "不满足取消上报条件, 无法上报.");
+            }
+        }
+
+        async Task UnauditAsync<TEntity>()
+        {
+            if (this.AuditStatus.HasFlag(AuditStatus.Audited))
+            {
+                this.AuditStatus ^= AuditStatus.Audited;
+                await this.DbContext.ServiceProvider.GetRequiredService<IMediator>().Publish(new EntityUnauditedNotification<TEntity>(this));
             }
         }
 

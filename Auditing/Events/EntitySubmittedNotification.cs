@@ -10,11 +10,11 @@ namespace Geex.Common.Abstraction.Auditing.Events
 {
     public class EntitySubmittedNotification<TEntity> : INotification
     {
-        public string EntityId { get; }
+        public IAuditEntity Entity { get; }
 
-        public EntitySubmittedNotification(string entityId)
+        public EntitySubmittedNotification(IAuditEntity entity)
         {
-            EntityId = entityId;
+            Entity = entity;
         }
     }
 }

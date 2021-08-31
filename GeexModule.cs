@@ -83,7 +83,9 @@ namespace Geex.Common.Abstractions
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             this.ConfigureModuleEntityMaps();
-            context.Services.AddMediatR(typeof(T));
+            context.Services.AddMediatR(configuration: configuration =>
+            {
+            }, typeof(T));
             base.ConfigureServices(context);
         }
 
@@ -118,6 +120,7 @@ namespace Geex.Common.Abstractions
         }
 
     }
+
     public class GeexModule : AbpModule
     {
         public IRequestExecutorBuilder SchemaBuilder => this.ServiceConfigurationContext.Services.GetSingletonInstance<IRequestExecutorBuilder>();

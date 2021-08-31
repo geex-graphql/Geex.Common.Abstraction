@@ -8,11 +8,11 @@ using MediatR;
 
 namespace Geex.Common.Abstraction.Auditing.Events
 {
-    public class EntityAuditedNotification<TEntity> : INotification
+    public class EntityUnsubmittedNotification<TEntity> : INotification
     {
         public IAuditEntity Entity { get; }
 
-        public EntityAuditedNotification(IAuditEntity entity)
+        public EntityUnsubmittedNotification(IAuditEntity entity)
         {
             Entity = entity;
         }

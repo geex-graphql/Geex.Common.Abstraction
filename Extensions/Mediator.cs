@@ -31,8 +31,8 @@ namespace Mediator
         /// <param name="ignoredPropNames">需要忽略的属性列表</param>
         public static void SetEntity<T, TEntity>(this T value, TEntity target, params string[] ignoredPropNames) where T : IBaseRequest where TEntity : Entity
         {
-            var cachedSrcMap = mapDictionary.GetOrAdd(typeof(T), x => x.GetProperties(BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.Public).ToDictionary(y => y.Name, y => y));
-            var cachedTargetMap = mapDictionary.GetOrAdd(typeof(TEntity), x => x.GetProperties(BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.Public).ToDictionary(y => y.Name, y => y));
+            var cachedSrcMap = mapDictionary.GetOrAdd(typeof(T), x => x.GetProperties(BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.Public).Where(y => y.CanRead).ToDictionary(y => y.Name, y => y));
+            var cachedTargetMap = mapDictionary.GetOrAdd(typeof(TEntity), x => x.GetProperties(BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.Public).Where(y => y.CanWrite).ToDictionary(y => y.Name, y => y));
             var overlaps = cachedSrcMap.WhereIf(ignoredPropNames.Any(), x => !ignoredPropNames.Contains(x.Key)).Join(cachedTargetMap, l => l.Key, r => r.Key, (srcProp, targetProp) => (srcProp, targetProp));
             foreach (var ((_, srcProp), (_, targetProp)) in overlaps)
             {

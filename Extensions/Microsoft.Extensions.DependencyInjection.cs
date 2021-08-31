@@ -153,5 +153,20 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IEnumerable<T> GetSingletonInstancesOrNull<T>(this IServiceCollection services) => services.Where<ServiceDescriptor>((Func<ServiceDescriptor, bool>)(d => d.ServiceType == typeof(T)))?.Select(x => x.ImplementationInstance).Cast<T>();
 
         public static IEnumerable<T> GetSingletonInstances<T>(this IServiceCollection services) => services.GetSingletonInstancesOrNull<T>() ?? throw new InvalidOperationException("Could not find singleton service: " + typeof(T).AssemblyQualifiedName);
+
+        public static IServiceCollection ReplaceAll(
+      this IServiceCollection collection,
+      ServiceDescriptor descriptor)
+        {
+            if (collection == null)
+                throw new ArgumentNullException(nameof(collection));
+            if (descriptor == null)
+                throw new ArgumentNullException(nameof(descriptor));
+            var serviceDescriptors = collection.Where((Func<ServiceDescriptor, bool>)(s => s.ServiceType == descriptor.ServiceType));
+            if (serviceDescriptors.Any())
+                collection.RemoveAll(serviceDescriptors);
+            collection.Add(descriptor);
+            return collection;
+        }
     }
 }

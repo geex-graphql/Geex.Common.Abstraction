@@ -25,7 +25,10 @@ namespace Geex.Common.Abstraction.Bson
         private readonly BsonType _representation = BsonType.String;
         private readonly TypeCode _underlyingTypeCode;
 
+        public EnumerationSerializer()
+        {
 
+        }
         /// <summary>
         /// Initializes a new instance of the <see cref="T:MongoDB.Bson.Serialization.Serializers.EnumSerializer`1" /> class.
         /// </summary>
