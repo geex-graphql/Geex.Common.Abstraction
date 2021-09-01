@@ -52,19 +52,19 @@ namespace HotChocolate.Types
                 @this.Field(x => ((IAuditEntity)x).AuditStatus);
                 @this.Field(x => ((IAuditEntity)x).Submittable);
             }
-            var queryableProps = typeof(T).GetProperties().Where(x => x.CanRead && !x.CanWrite);
-            foreach (var queryableProp in queryableProps)
-            {
-                @this.Field(queryableProp).Use(next => async context =>
-             {
-                 var entity = context.Parent<IEntity>();
-                 if (entity is { DbContext: null })
-                 {
-                     context.Service<DbContext>().Attach(entity);
-                 }
-                 await next(context);
-             });
-            }
+            //var queryableProps = typeof(T).GetProperties().Where(x => x.CanRead && !x.CanWrite);
+            //foreach (var queryableProp in queryableProps)
+            //{
+            //    @this.Field(queryableProp).Use(next => async context =>
+            // {
+            //     var entity = context.Parent<IEntity>();
+            //     if (entity is { DbContext: null })
+            //     {
+            //         context.Service<DbContext>().Attach(entity);
+            //     }
+            //     await next(context);
+            // });
+            //}
         }
 
         public static IRequestExecutorBuilder AddCommonTypes(
