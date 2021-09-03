@@ -34,7 +34,6 @@ namespace Geex.Common.Abstraction.Auditing
                 }
                 await entity.SubmitAsync<TInterface>();
             }
-            await entities.SaveAsync(cancellation: cancellationToken);
             return Unit.Value;
         }
 
@@ -55,8 +54,6 @@ namespace Geex.Common.Abstraction.Auditing
                 await entity.AuditAsync<TInterface>();
             }
 
-            await entities.SaveAsync(cancellation: cancellationToken);
-
             return Unit.Value;
         }
 
@@ -75,7 +72,6 @@ namespace Geex.Common.Abstraction.Auditing
                 }
                 await entity.UnsubmitAsync<TInterface>();
             }
-            await entities.SaveAsync(cancellation: cancellationToken);
             return Unit.Value;
         }
 
@@ -95,8 +91,6 @@ namespace Geex.Common.Abstraction.Auditing
 
                 await entity.UnauditAsync<TInterface>();
             }
-
-            await entities.SaveAsync(cancellation: cancellationToken);
 
             return Unit.Value;
         }
