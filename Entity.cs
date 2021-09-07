@@ -16,7 +16,7 @@ namespace Geex.Common.Abstractions
     {
         public static ConcurrentQueue<INotification> _domainEvents = new ConcurrentQueue<INotification>();
 
-        public DateTime ModifiedOn { get; set; }
+        public DateTimeOffset ModifiedOn { get; set; }
 
         protected void AddDomainEvent(params INotification[] events)
         {
