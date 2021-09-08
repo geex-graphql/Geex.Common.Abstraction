@@ -1,0 +1,39 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+
+using Geex.Common.Abstractions;
+
+using HotChocolate;
+using HotChocolate.AspNetCore.Serialization;
+using HotChocolate.Execution;
+
+namespace Geex.Common.Abstraction.Gql
+{
+    public class GeexResultSerializerWithCustomStatusCodes : DefaultHttpResultSerializer
+    {
+        public override HttpStatusCode GetStatusCode(IExecutionResult result)
+        {
+            var baseStatusCode = base.GetStatusCode(result);
+
+            if (result is IQueryResult && result.Errors?.Count > 0)
+            {
+                if (result.Errors.Any(e => e.Code == ErrorCodes.Authentication.NotAuthorized || e.Code == ErrorCodes.Authentication.NotAuthenticated))
+                    return HttpStatusCode.Forbidden;
+
+                if (result.Errors.Any(e => e.Exception is BusinessException business && business.ExceptionCode == GeexExceptionType.OnPurpose))
+                {
+                    return HttpStatusCode.InternalServerError;
+                }
+
+                return HttpStatusCode.BadRequest;
+
+            }
+
+            return baseStatusCode;
+        }
+    }
+}

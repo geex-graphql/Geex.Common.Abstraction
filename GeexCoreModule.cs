@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Geex.Common.Abstraction;
 using Geex.Common.Abstraction.Auditing;
+using Geex.Common.Abstraction.Gql;
 using Geex.Common.Abstractions;
 using Geex.Common.Gql;
 using Geex.Common.Gql.Roots;
@@ -20,6 +21,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Utilities;
+using HotChocolate.Validation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -61,12 +63,14 @@ namespace Geex.Common
             context.Services.AddStackExchangeRedisExtensions();
             context.Services.AddInMemorySubscriptions();
             context.Services.AddSingleton(schemaBuilder);
+            context.Services.AddHttpResultSerializer<GeexResultSerializerWithCustomStatusCodes>();
             schemaBuilder.AddConvention<ITypeInspector>(typeof(ClassEnumTypeConvention))
                 .AddTypeConverter((Type source, Type target, out ChangeType? converter) =>
                 {
                     converter = o => o;
                     return source.GetBaseClasses(false).Intersect(target.GetBaseClasses(false)).Any();
                 })
+                .AddValidationVisitor<ExtraArgsTolerantValidationVisitor>()
                 .AddTransactionScopeHandler<GeexTransactionScopeHandler>()
                 .AddFiltering()
                 .AddSorting()
