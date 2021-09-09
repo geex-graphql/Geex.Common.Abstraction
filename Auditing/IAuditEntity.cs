@@ -28,38 +28,46 @@ namespace Geex.Common.Abstraction.Auditing
             }
             else
             {
-                throw new BusinessException(GeexExceptionType.ValidationFailed, message: "不满足上报条件, 无法上报.");
+                throw new BusinessException(GeexExceptionType.ValidationFailed, message: "不满足上报条件.");
             }
         }
 
         async Task AuditAsync<TEntity>()
         {
-            if (this.AuditStatus.HasFlag(AuditStatus.Submitted))
+            if (this.AuditStatus == AuditStatus.Submitted)
             {
                 this.AuditStatus |= AuditStatus.Audited;
                 await this.DbContext.ServiceProvider.GetRequiredService<IMediator>().Publish(new EntityAuditedNotification<TEntity>(this));
+            }
+            else
+            {
+                throw new BusinessException(GeexExceptionType.ValidationFailed, message: "不满足审批条件.");
             }
         }
 
         async Task UnsubmitAsync<TEntity>()
         {
-            if (this.AuditStatus.HasFlag(AuditStatus.Submitted))
+            if (this.AuditStatus == AuditStatus.Submitted)
             {
                 this.AuditStatus ^= AuditStatus.Submitted;
                 await this.DbContext.ServiceProvider.GetRequiredService<IMediator>().Publish(new EntityUnsubmittedNotification<TEntity>(this));
             }
             else
             {
-                throw new BusinessException(GeexExceptionType.ValidationFailed, message: "不满足取消上报条件, 无法上报.");
+                throw new BusinessException(GeexExceptionType.ValidationFailed, message: "不满足取消上报条件.");
             }
         }
 
         async Task UnauditAsync<TEntity>()
         {
-            if (this.AuditStatus.HasFlag(AuditStatus.Audited))
+            if (this.AuditStatus == AuditStatus.Audited)
             {
                 this.AuditStatus ^= AuditStatus.Audited;
                 await this.DbContext.ServiceProvider.GetRequiredService<IMediator>().Publish(new EntityUnauditedNotification<TEntity>(this));
+            }
+            else
+            {
+                throw new BusinessException(GeexExceptionType.ValidationFailed, message: "不满足取消审批条件.");
             }
         }
 

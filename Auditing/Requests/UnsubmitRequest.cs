@@ -2,5 +2,5 @@
 
 namespace Geex.Common.Abstraction.Auditing
 {
-    public record UnsubmitRequest<T>(string[] Ids) : IRequest<Unit>;
+    public record UnsubmitRequest<T>(params string[] Ids) : IRequest<Unit>;
 }
