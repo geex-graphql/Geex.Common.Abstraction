@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Geex.Common.Abstraction;
 using Geex.Common.Abstraction.Auditing;
+using Geex.Common.Abstraction.Bson;
 using Geex.Common.Abstraction.Gql;
 using Geex.Common.Abstractions;
 using Geex.Common.Gql;
@@ -34,6 +35,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using StackExchange.Redis.Extensions.Core;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
@@ -48,6 +50,7 @@ namespace Geex.Common
             context.Services.AddTransient(typeof(LazyFactory<>));
             context.Services.AddTransient<ClaimsPrincipal>(x =>
                 x.GetService<IHttpContextAccessor>()?.HttpContext?.User);
+            BsonSerializer.RegisterSerializer(new DateTimeOffsetSupportingBsonDateTimeSerializer());
             base.PreConfigureServices(context);
         }
 
