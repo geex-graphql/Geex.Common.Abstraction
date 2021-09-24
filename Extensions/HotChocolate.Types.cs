@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
+using Geex.Common;
 using Geex.Common.Abstraction;
 using Geex.Common.Abstraction.Auditing;
 using Geex.Common.Gql.Types;
@@ -50,6 +53,17 @@ namespace HotChocolate.Types
                 @this.Field(x => ((IAuditEntity)x).AuditStatus);
                 @this.Field(x => ((IAuditEntity)x).Submittable);
             }
+        }
+
+        public static IFilterFieldDescriptor PostFilterField<T, TField>(
+            this IFilterInputTypeDescriptor<T> @this,
+            Expression<Func<T, TField>> property)
+        {
+            // <TField>(Expression<Func<T, TField>>
+            var field = @this.Field<TField>(property);
+            var prop = ((property.Body as MemberExpression).Member as PropertyInfo);
+            GeexQueryablePostFilterProvider.PostFilterFields.Add(prop.GetHashCode(),prop);
+            return field;
         }
 
         public static IRequestExecutorBuilder AddCommonTypes(

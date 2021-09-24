@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+
 using Geex.Common.Abstraction;
 using Geex.Common.Abstraction.Auditing;
 using Geex.Common.Abstraction.Bson;
@@ -15,6 +16,9 @@ using Geex.Common.Gql.Types;
 
 using HotChocolate;
 using HotChocolate.AspNetCore;
+using HotChocolate.Data;
+using HotChocolate.Data.Filters;
+using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Server;
@@ -23,7 +27,9 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Utilities;
 using HotChocolate.Validation;
+
 using MediatR;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -36,7 +42,9 @@ using Microsoft.Extensions.Options;
 
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
+
 using StackExchange.Redis.Extensions.Core;
+
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Modularity;
@@ -76,6 +84,7 @@ namespace Geex.Common
                 .AddValidationVisitor<ExtraArgsTolerantValidationVisitor>()
                 .AddTransactionScopeHandler<GeexTransactionScopeHandler>()
                 .AddFiltering()
+                .AddConvention<IFilterConvention>(new FilterConventionExtension(x => x.Provider(new GeexQueryablePostFilterProvider(y => y.AddDefaultFieldHandlers()))))
                 .AddSorting()
                 .AddProjections()
                 .AddQueryType()
