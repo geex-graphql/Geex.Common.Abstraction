@@ -139,13 +139,8 @@ namespace Geex.Common
                             }
                             expression = expression.Update(ProcessUncomputableExpressions(expression.Body, expression.Body.NodeType), expression.Parameters);
                             var data = source1.Where<TEntityType>(expression).ToList().AsQueryable();
-                            //bug:默认只支持检查到第一个数据级别
                             if (postExpression != default)
                             {
-                                if (postExpression.Body.NodeType == ExpressionType.OrElse && expression.ToString().Contains(expression.Parameters[0].Name + "."))
-                                {
-                                    throw new NotSupportedException("不支持or运算混用post filter查询");
-                                }
                                 data = data.Where<TEntityType>(postExpression);
                             }
                             obj3 = data;
