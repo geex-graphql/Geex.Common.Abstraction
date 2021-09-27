@@ -58,13 +58,12 @@ namespace Geex.Common
             context.Services.AddTransient(typeof(LazyFactory<>));
             context.Services.AddTransient<ClaimsPrincipal>(x =>
                 x.GetService<IHttpContextAccessor>()?.HttpContext?.User);
-            BsonSerializer.RegisterSerializer(new DateTimeOffsetSupportingBsonDateTimeSerializer());
+            // 静态调用在单元测试中会被重复调用, 这里加以判断
+            if (BsonSerializer.SerializerRegistry.GetSerializer<DateTimeOffsetSupportingBsonDateTimeSerializer>() == default)
+            {
+                BsonSerializer.RegisterSerializer(new DateTimeOffsetSupportingBsonDateTimeSerializer());
+            }
             base.PreConfigureServices(context);
-        }
-
-        public override void PostConfigureServices(ServiceConfigurationContext context)
-        {
-            base.PostConfigureServices(context);
         }
 
         public override void ConfigureServices(ServiceConfigurationContext context)

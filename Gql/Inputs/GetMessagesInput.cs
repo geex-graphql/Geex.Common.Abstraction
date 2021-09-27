@@ -1,4 +1,5 @@
 using System.Linq;
+
 using MediatR;
 
 namespace Geex.Common.Abstraction.Gql.Inputs

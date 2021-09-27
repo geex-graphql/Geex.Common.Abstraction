@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
+using Geex.Common.Abstraction.Entities;
 using Geex.Common.Abstractions;
 
 using MediatR;
@@ -11,13 +12,13 @@ using MongoDB.Entities;
 namespace Geex.Common.Abstraction.Auditing
 {
     public interface IAuditRequestHandler<TInterface, TEntity> :
+        ICommonHandler<TInterface, TEntity>,
         IRequestHandler<SubmitRequest<TInterface>>,
         IRequestHandler<AuditRequest<TInterface>>,
         IRequestHandler<UnsubmitRequest<TInterface>>,
         IRequestHandler<UnauditRequest<TInterface>>
         where TInterface : IAuditEntity where TEntity : TInterface
     {
-        public DbContext DbContext { get; }
 
         async Task<Unit> IRequestHandler<SubmitRequest<TInterface>, Unit>.Handle(SubmitRequest<TInterface> request, CancellationToken cancellationToken)
         {
