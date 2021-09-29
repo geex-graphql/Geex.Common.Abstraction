@@ -42,7 +42,7 @@ using Microsoft.Extensions.Options;
 
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
-
+using MongoDB.Entities;
 using StackExchange.Redis.Extensions.Core;
 
 using Volo.Abp;
@@ -53,16 +53,15 @@ namespace Geex.Common
 {
     public class GeexCoreModule : GeexModule<GeexCoreModule>
     {
+        static GeexCoreModule()
+        {
+            BsonSerializer.RegisterSerializer(new DateTimeOffsetSupportingBsonDateTimeSerializer());
+        }
         public override void PreConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddTransient(typeof(LazyFactory<>));
             context.Services.AddTransient<ClaimsPrincipal>(x =>
                 x.GetService<IHttpContextAccessor>()?.HttpContext?.User);
-            // 静态调用在单元测试中会被重复调用, 这里加以判断
-            if (BsonSerializer.SerializerRegistry.GetSerializer<DateTimeOffsetSupportingBsonDateTimeSerializer>() == default)
-            {
-                BsonSerializer.RegisterSerializer(new DateTimeOffsetSupportingBsonDateTimeSerializer());
-            }
             base.PreConfigureServices(context);
         }
 

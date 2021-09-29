@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Geex.Common.Abstraction;
@@ -21,48 +22,52 @@ namespace Geex.Common.Gql.Roots
         protected override void Configure(IObjectTypeDescriptor<T> descriptor)
         {
             descriptor.Name(OperationTypeNames.Mutation);
-            descriptor.Field(x=>x.Kind).Ignore();
-            descriptor.Field(x=>x.Scope).Ignore();
-            descriptor.Field(x=>x.Name).Ignore();
-            descriptor.Field(x=>x.Description).Ignore();
-            descriptor.Field(x=>x.ContextData).Ignore();
+            descriptor.Field(x => x.Kind).Ignore();
+            descriptor.Field(x => x.Scope).Ignore();
+            descriptor.Field(x => x.Name).Ignore();
+            descriptor.Field(x => x.Description).Ignore();
+            descriptor.Field(x => x.ContextData).Ignore();
             if (typeof(T).IsAssignableTo<IHasAuditMutation>())
             {
                 var mutationType = this.GetType().GetInterface("IHasAuditMutation`1");
                 var entityType = mutationType.GenericTypeArguments[0];
+
                 var submit = mutationType.GetMethod(nameof(IHasAuditMutation<IAuditEntity>.SubmitAsync));
                 var audit = mutationType.GetMethod(nameof(IHasAuditMutation<IAuditEntity>.AuditAsync));
                 var unsubmit = mutationType.GetMethod(nameof(IHasAuditMutation<IAuditEntity>.UnsubmitAsync));
                 var unaudit = mutationType.GetMethod(nameof(IHasAuditMutation<IAuditEntity>.UnauditAsync));
-                descriptor.Field("submit" + entityType.Name.RemovePreFix("I"))
+                var submitFieldDescriptor = descriptor.Field("submit" + entityType.Name.RemovePreFix("I"))
                     .Type<BooleanType>()
                     .Argument("ids", argumentDescriptor => argumentDescriptor.Type(typeof(string[])))
+                    .Authorize($"mutation.submit{entityType.Name.RemovePreFix("I")}")
                     .Resolve(resolver: async (context, token) =>
                     {
                         return await (submit.Invoke(this,
                             new object?[] { context.Service<IMediator>(), context.ArgumentValue<string[]>("ids") }) as Task<bool>);
-                    })
-                    ;
-                descriptor.Field("audit" + entityType.Name.RemovePreFix("I"))
+                    });
+                var auditFieldDescriptor = descriptor.Field("audit" + entityType.Name.RemovePreFix("I"))
                     .Type<BooleanType>()
                     .Argument("ids", argumentDescriptor => argumentDescriptor.Type(typeof(string[])))
+                    .Authorize($"mutation.audit{entityType.Name.RemovePreFix("I")}")
                     .Resolve(resolver: async (context, token) =>
                     {
                         return await (audit.Invoke(this,
                             new object?[] { context.Service<IMediator>(), context.ArgumentValue<string[]>("ids") }) as Task<bool>);
                     });
-                descriptor.Field("unsubmit" + entityType.Name.RemovePreFix("I"))
+                var unsubmitFieldDescriptor = descriptor.Field("unsubmit" + entityType.Name.RemovePreFix("I"))
                     .Type<BooleanType>()
                     .Argument("ids", argumentDescriptor => argumentDescriptor.Type(typeof(string[])))
+                    .Authorize($"mutation.unsubmit{entityType.Name.RemovePreFix("I")}")
                     .Resolve(resolver: async (context, token) =>
                     {
                         return await (unsubmit.Invoke(this,
                             new object?[] { context.Service<IMediator>(), context.ArgumentValue<string[]>("ids") }) as Task<bool>);
                     })
                     ;
-                descriptor.Field("unaudit" + entityType.Name.RemovePreFix("I"))
+                var unauditFieldDescriptor = descriptor.Field("unaudit" + entityType.Name.RemovePreFix("I"))
                     .Type<BooleanType>()
                     .Argument("ids", argumentDescriptor => argumentDescriptor.Type(typeof(string[])))
+                    .Authorize($"mutation.unaudit{entityType.Name.RemovePreFix("I")}")
                     .Resolve(resolver: async (context, token) =>
                     {
                         return await (unaudit.Invoke(this,

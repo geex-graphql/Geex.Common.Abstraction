@@ -71,7 +71,7 @@ namespace Geex.Common.Abstractions
         .Select(Assembly.Load)
         .Concat(GeexModule.KnownModuleAssembly)
         .Distinct()
-        .SelectMany(x => x.DefinedTypes).Where(x => x.IsAssignableTo(typeof(TEnum))).Concat(new[] { typeof(TEnum) }).Distinct();
+        .SelectMany(x => x.DefinedTypes).Where(x => x.IsAssignableTo(typeof(TEnum)) && !x.IsAbstract).Concat(new[] { typeof(TEnum) }).Distinct();
 
             List<TEnum> options = new List<TEnum>();
             foreach (Type enumType in enumTypes)
@@ -398,16 +398,7 @@ namespace Geex.Common.Abstractions
 
     public static class EnumerationExtensions
     {
-        public static IEnumerable<TResult> Cast<TEnum, TResult>(this IEnumerable<TEnum> source) where TEnum : Enumeration<TEnum, TResult> where TResult : IEquatable<TResult>, IComparable<TResult>
-        {
-            if (source is IEnumerable<TResult> results)
-                return results;
-            if (source == null)
-                throw new ArgumentNullException("source");
-            return source.Select(x => (TResult)x);
-        }
-
-
+        
         public static Type GetClassEnumValueType(this Type type)
         {
             return type.GetBaseClasses(false).First(x => x.IsAssignableTo<IEnumeration>()).GenericTypeArguments[1];
