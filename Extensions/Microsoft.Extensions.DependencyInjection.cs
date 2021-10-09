@@ -27,7 +27,9 @@ using HotChocolate.Types.Pagination;
 using HotChocolate.Utilities;
 
 using ImpromptuInterface;
+
 using MediatR;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -40,6 +42,7 @@ using MongoDB.Driver;
 using MongoDB.Entities;
 
 using Volo.Abp.Modularity;
+
 using Entity = Geex.Common.Abstractions.Entity;
 
 // ReSharper disable once CheckNamespace
@@ -57,7 +60,7 @@ namespace Microsoft.Extensions.DependencyInjection
             //builder.AddScoped(x => new DbContext(transactional: true));
             builder.AddScoped<IUnitOfWork>(x => new WrapperUnitOfWork(async () =>
             {
-                foreach (var notification in Entity._domainEvents)
+                while (Entity._domainEvents.TryDequeue(out var notification))
                 {
                     await x.GetService<IMediator>().Publish(notification);
                 }
