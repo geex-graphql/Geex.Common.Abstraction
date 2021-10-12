@@ -113,6 +113,14 @@ namespace HotChocolate.Types
             return @this.Authorize(result);
         }
 
+        public static void AuthorizeFieldsImplicitly<T>(this IObjectTypeDescriptor<T> descriptor) where T : class
+        {
+            var propertyList = typeof(T).GetProperties();
+            foreach (var item in propertyList)
+            {
+                descriptor.FieldWithDefaultAuthorize(item);
+            }
+        }
         public static IObjectFieldDescriptor FieldWithDefaultAuthorize<T,TValue>(this IObjectTypeDescriptor<T>  @this,Expression<Func<T, TValue>> propertyOrMethod)
         {
             return @this.FieldWithDefaultAuthorize((propertyOrMethod.Body as MemberExpression)!.Member);
