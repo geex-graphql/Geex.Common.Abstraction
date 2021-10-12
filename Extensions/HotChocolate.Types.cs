@@ -102,16 +102,55 @@ namespace HotChocolate.Types
             var className = trace.GetFrame(1).GetMethod().DeclaringType.Name;
             var result = "";
             if (className.Contains("Query")) {
-                result = $"{className.Replace("Query","").ToCamelCase()}.query";
+                result = $"query.{className.Replace("Query", "").ToCamelCase()}.*";
 
             } else if (className.Contains("Mutation")) {
-                result = $"{className.Replace("Mutation", "").ToCamelCase()}.mutation";
+                result = $"mutation.{className.Replace("Mutation", "").ToCamelCase()}.*";
 
             }  else if (className.Contains("Subscription")) {
-                result = $"{className.Replace("Subscription", "").ToCamelCase()}.subscription";
+                result = $"subscription.{className.Replace("Subscription", "").ToCamelCase()}.*";
             }
+            Console.WriteLine($@"{result}{"\","}");
             return @this.Authorize(result);
         }
+
+        public static IObjectTypeDescriptor<T> AuthorizeWithDefaultName<T>(this IObjectTypeDescriptor<T> @this) 
+        {
+            var trace = new StackTrace();
+            //获取是哪个类来调用的
+            var className = trace.GetFrame(1).GetMethod().DeclaringType.Name;
+            var result = "";
+            var aggregateName = "";
+            if (className.Contains("Query"))
+            {
+                aggregateName = className.Replace("Query", "").ToCamelCase();
+                result = $"query.{aggregateName}";
+
+            }
+            else if (className.Contains("Mutation"))
+            {
+                aggregateName = className.Replace("Mutation", "").ToCamelCase();
+                result = $"mutation.{aggregateName}";
+
+            }
+            else if (className.Contains("Subscription"))
+            {
+                aggregateName = className.Replace("Subscription", "").ToCamelCase();
+                result = $"subscription.{aggregateName}";
+            }
+
+            var propertyList = typeof(T).GetMethods();
+            foreach (var item in propertyList)
+            {
+                if (item.Name.ToLower().Contains(aggregateName.ToLower())) {
+                    @this.Authorize($"{result}.{item.Name.ToCamelCase()}");
+                    Console.WriteLine($@"{result}.{item.Name.ToCamelCase()}{"\","}");
+                }
+            }
+
+            return @this;
+        }
+
 
         public static void AuthorizeFieldsImplicitly<T>(this IObjectTypeDescriptor<T> descriptor) where T : class
         {
@@ -121,14 +160,21 @@ namespace HotChocolate.Types
                 descriptor.FieldWithDefaultAuthorize(item);
             }
         }
+
+
         public static IObjectFieldDescriptor FieldWithDefaultAuthorize<T,TValue>(this IObjectTypeDescriptor<T>  @this,Expression<Func<T, TValue>> propertyOrMethod)
         {
+            if (propertyOrMethod.Body.NodeType == ExpressionType.Call)
+            {
+                return @this.FieldWithDefaultAuthorize((propertyOrMethod.Body as MethodCallExpression)!.Method);
+            }
             return @this.FieldWithDefaultAuthorize((propertyOrMethod.Body as MemberExpression)!.Member);
         }
 
         public static IObjectFieldDescriptor FieldWithDefaultAuthorize<T>(this IObjectTypeDescriptor<T> @this, MemberInfo propertyOrMethod)
         {
             var prefix = @this.GetAggregateAuthorizePrefix();
+            Console.WriteLine($@"{prefix}.{propertyOrMethod.Name.ToCamelCase()}{"\","}");
             return @this.Field(propertyOrMethod).Authorize($"{prefix}.{propertyOrMethod.Name.ToCamelCase()}");
         }
     }
