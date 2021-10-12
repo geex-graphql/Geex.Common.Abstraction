@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -84,6 +85,43 @@ namespace HotChocolate.Types
                     x.Field(y => y.Submittable);
                 })
                 .BindRuntimeType<ObjectId, ObjectIdType>();
+        }
+
+
+        public static string GetAggregateAuthorizePrefix<TAggregate>(this IObjectTypeDescriptor<TAggregate> @this) {
+
+            var moduleName = typeof(TAggregate).Name.RemovePreFix("I").ToCamelCase();
+            var prefix = $"query.{moduleName}";
+            return prefix;
+        }
+
+        public static IObjectFieldDescriptor AuthorizeWithDefaultName(this IObjectFieldDescriptor @this) {
+            
+            var  trace = new StackTrace();
+            //获取是哪个类来调用的
+            var className = trace.GetFrame(1).GetMethod().DeclaringType.Name;
+            var result = "";
+            if (className.Contains("Query")) {
+                result = $"{className.Replace("Query","").ToCamelCase()}.query";
+
+            } else if (className.Contains("Mutation")) {
+                result = $"{className.Replace("Mutation", "").ToCamelCase()}.mutation";
+
+            }  else if (className.Contains("Subscription")) {
+                result = $"{className.Replace("Subscription", "").ToCamelCase()}.subscription";
+            }
+            return @this.Authorize(result);
+        }
+
+        public static IObjectFieldDescriptor FieldWithDefaultAuthorize<T,TValue>(this IObjectTypeDescriptor<T>  @this,Expression<Func<T, TValue>> propertyOrMethod)
+        {
+            return @this.FieldWithDefaultAuthorize((propertyOrMethod.Body as MemberExpression)!.Member);
+        }
+
+        public static IObjectFieldDescriptor FieldWithDefaultAuthorize<T>(this IObjectTypeDescriptor<T> @this, MemberInfo propertyOrMethod)
+        {
+            var prefix = @this.GetAggregateAuthorizePrefix();
+            return @this.Field(propertyOrMethod).Authorize($"{prefix}.{propertyOrMethod.Name.ToCamelCase()}");
         }
     }
 }
