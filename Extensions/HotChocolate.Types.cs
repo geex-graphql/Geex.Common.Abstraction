@@ -120,29 +120,34 @@ namespace HotChocolate.Types
             //获取是哪个类来调用的
             var className = trace.GetFrame(1).GetMethod().DeclaringType.Name;
             var result = "";
-            var aggregateName = "";
             if (className.Contains("Query"))
             {
-                aggregateName = className.Replace("Query", "").ToCamelCase();
-                result = $"query.{aggregateName}";
+                result = $"query.{className.Replace("Query", "").ToCamelCase()}";
 
             }
             else if (className.Contains("Mutation"))
             {
-                aggregateName = className.Replace("Mutation", "").ToCamelCase();
-                result = $"mutation.{aggregateName}";
+                result = $"mutation.{className.Replace("Mutation", "").ToCamelCase()}";
 
             }
             else if (className.Contains("Subscription"))
             {
-                aggregateName = className.Replace("Subscription", "").ToCamelCase();
-                result = $"subscription.{aggregateName}";
+                result = $"subscription.{className.Replace("Subscription", "").ToCamelCase()}";
             }
 
-            var propertyList = typeof(T).GetMethods();
+            var propertyList = typeof(T).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
             foreach (var item in propertyList)
             {
-                if (item.Name.ToLower().Contains(aggregateName.ToLower())) {
+                @this.Authorize($"{result}.{item.Name.ToCamelCase()}");
+                Console.WriteLine($@"{result}.{item.Name.ToCamelCase()}{"\","}");
+            }
+
+            // 判断是否继承了审核基类
+            if (typeof(T).GetInterfaces().Contains(typeof(IHasAuditMutation))) {
+
+                var auditPropertyList = typeof(IHasAuditMutation<>).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+                foreach (var item in auditPropertyList)
+                {
                     @this.Authorize($"{result}.{item.Name.ToCamelCase()}");
                     Console.WriteLine($@"{result}.{item.Name.ToCamelCase()}{"\","}");
                 }
