@@ -11,6 +11,7 @@ using Autofac;
 using Geex.Common;
 using Geex.Common.Abstraction;
 using Geex.Common.Abstraction.Auditing;
+using Geex.Common.Abstraction.Gql;
 using Geex.Common.Abstractions;
 using Geex.Common.Gql;
 using Geex.Common.Gql.Roots;
@@ -18,6 +19,7 @@ using Geex.Common.Gql.Types;
 
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Voyager;
+using HotChocolate.Data.Filters;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
@@ -118,6 +120,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 foreach (var classEnumType in classEnumTypes)
                 {
                     schemaBuilder.BindRuntimeType(classEnumType, typeof(EnumerationType<,>).MakeGenericType(classEnumType, classEnumType.GetClassEnumValueType()));
+                    schemaBuilder.AddConvention<IFilterConvention>(new FilterConventionExtension(x =>
+                    {
+                        x.BindRuntimeType(classEnumType, typeof(ClassEnumOperationFilterInput<>).MakeGenericType(classEnumType));
+                    }));
                 }
 
                 var directiveTypes = exportedTypes.Where(x => AbpTypeExtensions.IsAssignableTo<DirectiveType>(x)).ToList();
