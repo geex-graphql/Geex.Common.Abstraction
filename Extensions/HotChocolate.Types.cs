@@ -138,17 +138,18 @@ namespace HotChocolate.Types
             var propertyList = typeof(T).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
             foreach (var item in propertyList)
             {
-                @this.Authorize($"{result}.{item.Name.ToCamelCase()}");
+                @this.Field(item).Authorize($"{result}.{item.Name.ToCamelCase()}");
                 Console.WriteLine($@"{result}.{item.Name.ToCamelCase()}{"\","}");
             }
 
             // 判断是否继承了审核基类
-            if (typeof(T).GetInterfaces().Contains(typeof(IHasAuditMutation))) {
-
-                var auditPropertyList = typeof(IHasAuditMutation<>).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+            if (typeof(T).GetInterfaces().Contains(typeof(IHasAuditMutation)))
+            {
+                var auditMutationType = typeof(T).GetInterfaces().First(x => x.Name.StartsWith(nameof(IHasAuditMutation) + "`1"));
+                var auditPropertyList = auditMutationType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
                 foreach (var item in auditPropertyList)
                 {
-                    @this.Authorize($"{result}.{item.Name.ToCamelCase()}");
+                    @this.Field(item).Authorize($"{result}.{item.Name.ToCamelCase()}");
                     Console.WriteLine($@"{result}.{item.Name.ToCamelCase()}{"\","}");
                 }
             }
