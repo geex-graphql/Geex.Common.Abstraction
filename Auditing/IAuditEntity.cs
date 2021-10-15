@@ -18,12 +18,17 @@ namespace Geex.Common.Abstraction.Auditing
         /// 对象审批状态
         /// </summary>
         public AuditStatus AuditStatus { get; set; }
+        /// <summary>
+        /// 审批操作备注文本
+        /// </summary>
+        public string AuditRemark { get; set; }
 
-        async Task SubmitAsync<TEntity>()
+        async Task SubmitAsync<TEntity>(string? remark = default)
         {
             if (this.Submittable)
             {
                 this.AuditStatus |= AuditStatus.Submitted;
+                this.AuditRemark = remark;
                 await this.DbContext.ServiceProvider.GetRequiredService<IMediator>().Publish(new EntitySubmittedNotification<TEntity>(this));
             }
             else
@@ -32,11 +37,12 @@ namespace Geex.Common.Abstraction.Auditing
             }
         }
 
-        async Task AuditAsync<TEntity>()
+        async Task AuditAsync<TEntity>(string? remark = default)
         {
             if (this.AuditStatus == AuditStatus.Submitted)
             {
                 this.AuditStatus |= AuditStatus.Audited;
+                this.AuditRemark = remark;
                 await this.DbContext.ServiceProvider.GetRequiredService<IMediator>().Publish(new EntityAuditedNotification<TEntity>(this));
             }
             else
@@ -45,11 +51,12 @@ namespace Geex.Common.Abstraction.Auditing
             }
         }
 
-        async Task UnsubmitAsync<TEntity>()
+        async Task UnsubmitAsync<TEntity>(string? remark = default)
         {
             if (this.AuditStatus == AuditStatus.Submitted)
             {
                 this.AuditStatus ^= AuditStatus.Submitted;
+                this.AuditRemark = remark;
                 await this.DbContext.ServiceProvider.GetRequiredService<IMediator>().Publish(new EntityUnsubmittedNotification<TEntity>(this));
             }
             else
@@ -58,11 +65,12 @@ namespace Geex.Common.Abstraction.Auditing
             }
         }
 
-        async Task UnauditAsync<TEntity>()
+        async Task UnauditAsync<TEntity>(string? remark = default)
         {
             if (this.AuditStatus == AuditStatus.Audited)
             {
                 this.AuditStatus ^= AuditStatus.Audited;
+                this.AuditRemark = remark;
                 await this.DbContext.ServiceProvider.GetRequiredService<IMediator>().Publish(new EntityUnauditedNotification<TEntity>(this));
             }
             else

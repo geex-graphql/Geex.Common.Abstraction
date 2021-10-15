@@ -39,39 +39,43 @@ namespace Geex.Common.Gql.Roots
                 var submitFieldDescriptor = descriptor.Field("submit" + entityType.Name.RemovePreFix("I"))
                     .Type<BooleanType>()
                     .Argument("ids", argumentDescriptor => argumentDescriptor.Type(typeof(string[])))
+                    .Argument("remark", argumentDescriptor => argumentDescriptor.Type(typeof(string)))
                     .Authorize($"mutation.submit{entityType.Name.RemovePreFix("I")}")
                     .Resolve(resolver: async (context, token) =>
                     {
                         return await (submit.Invoke(this,
-                            new object?[] { context.Service<IMediator>(), context.ArgumentValue<string[]>("ids") }) as Task<bool>);
+                            new object?[] { context.Service<IMediator>(), context.ArgumentValue<string[]>("ids"), context.ArgumentValue<string>("remark") }) as Task<bool>);
                     });
                 var auditFieldDescriptor = descriptor.Field("audit" + entityType.Name.RemovePreFix("I"))
                     .Type<BooleanType>()
                     .Argument("ids", argumentDescriptor => argumentDescriptor.Type(typeof(string[])))
+                    .Argument("remark", argumentDescriptor => argumentDescriptor.Type(typeof(string)))
                     .Authorize($"mutation.audit{entityType.Name.RemovePreFix("I")}")
                     .Resolve(resolver: async (context, token) =>
                     {
                         return await (audit.Invoke(this,
-                            new object?[] { context.Service<IMediator>(), context.ArgumentValue<string[]>("ids") }) as Task<bool>);
+                            new object?[] { context.Service<IMediator>(), context.ArgumentValue<string[]>("ids"), context.ArgumentValue<string>("remark") }) as Task<bool>);
                     });
                 var unsubmitFieldDescriptor = descriptor.Field("unsubmit" + entityType.Name.RemovePreFix("I"))
                     .Type<BooleanType>()
                     .Argument("ids", argumentDescriptor => argumentDescriptor.Type(typeof(string[])))
+                    .Argument("remark", argumentDescriptor => argumentDescriptor.Type(typeof(string)))
                     .Authorize($"mutation.unsubmit{entityType.Name.RemovePreFix("I")}")
                     .Resolve(resolver: async (context, token) =>
                     {
                         return await (unsubmit.Invoke(this,
-                            new object?[] { context.Service<IMediator>(), context.ArgumentValue<string[]>("ids") }) as Task<bool>);
+                            new object?[] { context.Service<IMediator>(), context.ArgumentValue<string[]>("ids"), context.ArgumentValue<string>("remark") }) as Task<bool>);
                     })
                     ;
                 var unauditFieldDescriptor = descriptor.Field("unaudit" + entityType.Name.RemovePreFix("I"))
                     .Type<BooleanType>()
                     .Argument("ids", argumentDescriptor => argumentDescriptor.Type(typeof(string[])))
+                    .Argument("remark", argumentDescriptor => argumentDescriptor.Type(typeof(string)))
                     .Authorize($"mutation.unaudit{entityType.Name.RemovePreFix("I")}")
                     .Resolve(resolver: async (context, token) =>
                     {
                         return await (unaudit.Invoke(this,
-                            new object?[] { context.Service<IMediator>(), context.ArgumentValue<string[]>("ids") }) as Task<bool>);
+                            new object?[] { context.Service<IMediator>(), context.ArgumentValue<string[]>("ids"), context.ArgumentValue<string>("remark") }) as Task<bool>);
                     });
             }
             base.Configure(descriptor);
