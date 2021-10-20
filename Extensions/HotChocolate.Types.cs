@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Geex.Common;
 using Geex.Common.Abstraction;
 using Geex.Common.Abstraction.Auditing;
+using Geex.Common.Authorization;
 using Geex.Common.Gql.Types;
 
 using HotChocolate.Data.Filters;
@@ -18,6 +19,8 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+
+using Humanizer;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -29,7 +32,7 @@ namespace HotChocolate.Types
 {
     public static class Extension
     {
-        public static IObjectFieldDescriptor ResolveMethod<TResolver>(
+        public static IObjectFieldDescriptor ConfigQuery<TResolver>(
             this IObjectTypeDescriptor<TResolver> @this,
             Expression<Func<TResolver, object?>> propertyOrMethod)
         {
@@ -63,7 +66,7 @@ namespace HotChocolate.Types
             // <TField>(Expression<Func<T, TField>>
             var field = @this.Field<TField>(property);
             var prop = ((property.Body as MemberExpression).Member as PropertyInfo);
-            GeexQueryablePostFilterProvider.PostFilterFields.Add(prop.GetHashCode(),prop);
+            GeexQueryablePostFilterProvider.PostFilterFields.Add(prop.GetHashCode(), prop);
             return field;
         }
 
@@ -88,58 +91,45 @@ namespace HotChocolate.Types
         }
 
 
-        public static string GetAggregateAuthorizePrefix<TAggregate>(this IObjectTypeDescriptor<TAggregate> @this) {
+        public static string GetAggregateAuthorizePrefix<TAggregate>(this IObjectTypeDescriptor<TAggregate> @this)
+        {
 
             var moduleName = typeof(TAggregate).Name.RemovePreFix("I").ToCamelCase();
-            var prefix = $"query.{moduleName}";
+            var prefix = $"query_{moduleName}";
             return prefix;
         }
 
-        public static IObjectFieldDescriptor AuthorizeWithDefaultName(this IObjectFieldDescriptor @this) {
-            
-            var  trace = new StackTrace();
-            //获取是哪个类来调用的
-            var className = trace.GetFrame(1).GetMethod().DeclaringType.Name;
-            var result = "";
-            if (className.Contains("Query")) {
-                result = $"query.{className.Replace("Query", "").ToCamelCase()}.*";
-
-            } else if (className.Contains("Mutation")) {
-                result = $"mutation.{className.Replace("Mutation", "").ToCamelCase()}.*";
-
-            }  else if (className.Contains("Subscription")) {
-                result = $"subscription.{className.Replace("Subscription", "").ToCamelCase()}.*";
-            }
-            Console.WriteLine($@"{result}{"\","}");
-            return @this.Authorize(result);
-        }
-
-        public static IObjectTypeDescriptor<T> AuthorizeWithDefaultName<T>(this IObjectTypeDescriptor<T> @this) 
+        public static IObjectTypeDescriptor<T> AuthorizeWithDefaultName<T>(this IObjectTypeDescriptor<T> @this)
         {
             var trace = new StackTrace();
             //获取是哪个类来调用的
-            var className = trace.GetFrame(1).GetMethod().DeclaringType.Name;
-            var result = "";
+            var caller = trace.GetFrame(1).GetMethod();
+            var className = caller.DeclaringType.Name;
+            var prefix = "";
             if (className.Contains("Query"))
             {
-                result = $"query.{className.Replace("Query", "").ToCamelCase()}";
+                prefix = $"query";
 
             }
             else if (className.Contains("Mutation"))
             {
-                result = $"mutation.{className.Replace("Mutation", "").ToCamelCase()}";
+                prefix = $"mutation";
 
             }
             else if (className.Contains("Subscription"))
             {
-                result = $"subscription.{className.Replace("Subscription", "").ToCamelCase()}";
+                prefix = $"subscription";
             }
 
             var propertyList = typeof(T).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
             foreach (var item in propertyList)
             {
-                @this.Field(item).Authorize($"{result}.{item.Name.ToCamelCase()}");
-                Console.WriteLine($@"{result}.{item.Name.ToCamelCase()}{"\","}");
+                var policy = $"{prefix}_{item.Name.ToCamelCase().Singularize()}";
+                if (AppPermission.List.Any(x => x.Value == policy) && AppPermission.List.Any(x => x.Value == policy))
+                {
+                    @this.Field(item).Authorize(policy);
+                    Console.WriteLine($@"{policy}");
+                }
             }
 
             // 判断是否继承了审核基类
@@ -149,11 +139,14 @@ namespace HotChocolate.Types
                 var auditPropertyList = auditMutationType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
                 foreach (var item in auditPropertyList)
                 {
-                    @this.Field(item).Authorize($"{result}.{item.Name.ToCamelCase()}");
-                    Console.WriteLine($@"{result}.{item.Name.ToCamelCase()}{"\","}");
+                    var policy = $"{prefix}_{item.Name.ToCamelCase()}";
+                    if (AppPermission.List.Any(x => x.Value == policy) && AppPermission.List.Any(x => x.Value == policy))
+                    {
+                        @this.Field(item).Authorize(policy);
+                        Console.WriteLine($@"{policy}");
+                    }
                 }
             }
-
             return @this;
         }
 
@@ -168,7 +161,7 @@ namespace HotChocolate.Types
         }
 
 
-        public static IObjectFieldDescriptor FieldWithDefaultAuthorize<T,TValue>(this IObjectTypeDescriptor<T>  @this,Expression<Func<T, TValue>> propertyOrMethod)
+        public static IObjectFieldDescriptor FieldWithDefaultAuthorize<T, TValue>(this IObjectTypeDescriptor<T> @this, Expression<Func<T, TValue>> propertyOrMethod)
         {
             if (propertyOrMethod.Body.NodeType == ExpressionType.Call)
             {
@@ -180,8 +173,15 @@ namespace HotChocolate.Types
         public static IObjectFieldDescriptor FieldWithDefaultAuthorize<T>(this IObjectTypeDescriptor<T> @this, MemberInfo propertyOrMethod)
         {
             var prefix = @this.GetAggregateAuthorizePrefix();
-            Console.WriteLine($@"{prefix}.{propertyOrMethod.Name.ToCamelCase()}{"\","}");
-            return @this.Field(propertyOrMethod).Authorize($"{prefix}.{propertyOrMethod.Name.ToCamelCase()}");
+            var fieldDescriptor = @this.Field(propertyOrMethod);
+            var policy = $"{prefix}_{propertyOrMethod.Name.ToCamelCase()}";
+            if (AppPermission.List.Any(x => x.Value == policy) && AppPermission.List.Any(x => x.Value == policy))
+            {
+                fieldDescriptor = fieldDescriptor.Authorize(policy);
+                Console.WriteLine($@"{policy}");
+            }
+
+            return fieldDescriptor;
         }
     }
 }

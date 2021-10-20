@@ -42,6 +42,7 @@ namespace Geex.Common.Abstractions
         public Enumeration() : base((x) => x.Name, x => x.Value)
         {
         }
+        public static readonly List<TEnum> DynamicValues = new List<TEnum>();
         static readonly Lazy<Dictionary<string, TEnum>> _fromName =
             new Lazy<Dictionary<string, TEnum>>(() => GetAllOptions().ToDictionary(item => item.Name));
 
@@ -77,6 +78,11 @@ namespace Geex.Common.Abstractions
             foreach (Type enumType in enumTypes)
             {
                 List<TEnum> typeEnumOptions = enumType.GetPropertiesOfType<TEnum>();
+                var dynamicOptions = enumType.BaseType?.GetField(nameof(Enumeration.DynamicValues))?.GetValue(default) as List<TEnum>;
+                if (dynamicOptions?.Any() == true)
+                {
+                    typeEnumOptions.AddRange(dynamicOptions);
+                }
                 options.AddRange(typeEnumOptions);
             }
 
@@ -398,7 +404,7 @@ namespace Geex.Common.Abstractions
 
     public static class EnumerationExtensions
     {
-        
+
         public static Type GetClassEnumValueType(this Type type)
         {
             return type.GetBaseClasses(false).First(x => x.IsAssignableTo<IEnumeration>()).GenericTypeArguments[1];
