@@ -40,7 +40,6 @@ namespace Geex.Common.Gql.Roots
                     .Type<BooleanType>()
                     .Argument("ids", argumentDescriptor => argumentDescriptor.Type(typeof(string[])))
                     .Argument("remark", argumentDescriptor => argumentDescriptor.Type(typeof(string)))
-                    .Authorize($"mutation.submit{entityType.Name.RemovePreFix("I")}")
                     .Resolve(resolver: async (context, token) =>
                     {
                         return await (submit.Invoke(this,
@@ -50,7 +49,6 @@ namespace Geex.Common.Gql.Roots
                     .Type<BooleanType>()
                     .Argument("ids", argumentDescriptor => argumentDescriptor.Type(typeof(string[])))
                     .Argument("remark", argumentDescriptor => argumentDescriptor.Type(typeof(string)))
-                    .Authorize($"mutation.audit{entityType.Name.RemovePreFix("I")}")
                     .Resolve(resolver: async (context, token) =>
                     {
                         return await (audit.Invoke(this,
@@ -60,7 +58,6 @@ namespace Geex.Common.Gql.Roots
                     .Type<BooleanType>()
                     .Argument("ids", argumentDescriptor => argumentDescriptor.Type(typeof(string[])))
                     .Argument("remark", argumentDescriptor => argumentDescriptor.Type(typeof(string)))
-                    .Authorize($"mutation.unsubmit{entityType.Name.RemovePreFix("I")}")
                     .Resolve(resolver: async (context, token) =>
                     {
                         return await (unsubmit.Invoke(this,
@@ -71,7 +68,6 @@ namespace Geex.Common.Gql.Roots
                     .Type<BooleanType>()
                     .Argument("ids", argumentDescriptor => argumentDescriptor.Type(typeof(string[])))
                     .Argument("remark", argumentDescriptor => argumentDescriptor.Type(typeof(string)))
-                    .Authorize($"mutation.unaudit{entityType.Name.RemovePreFix("I")}")
                     .Resolve(resolver: async (context, token) =>
                     {
                         return await (unaudit.Invoke(this,
