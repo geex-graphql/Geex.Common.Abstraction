@@ -12,6 +12,8 @@
         public static GeexClaimType Expires { get; } = new GeexClaimType(nameof(Expires), _Expires);
         public const string _FullName = "fullname";
         public static GeexClaimType FullName { get; } = new GeexClaimType(nameof(FullName), _FullName);
+        public const string _Org = "org";
+        public static GeexClaimType Org { get; } = new GeexClaimType(nameof(Org), _Org);
 
         public GeexClaimType(string name, string value) : base(name, value)
         {

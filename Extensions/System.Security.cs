@@ -4,7 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
+using System.Text.Json;
+
 using Geex.Common.Abstractions.Enumerations;
+
 using Volo.Abp;
 
 // ReSharper disable once CheckNamespace
@@ -21,8 +24,19 @@ namespace System.Security.Claims
                 : null;
             if (claim == null || claim.Value.IsNullOrWhiteSpace())
                 return default;
-            Guid result;
             return claim?.Value;
+        }
+
+        public static string[]? FindOrgIds(this ClaimsPrincipal principal)
+        {
+            Check.NotNull(principal, nameof(principal));
+            IEnumerable<Claim> claims = principal.Claims;
+            Claim? claim = claims != null
+                ? claims.FirstOrDefault((Func<Claim, bool>)(c => c.Type == GeexClaimType.Org))
+                : null;
+            if (claim == null || claim.Value.IsNullOrWhiteSpace())
+                return default;
+            return claim?.Value?.ToObject<string[]>();
         }
 
         public static string? FindUserId(this IIdentity identity)
