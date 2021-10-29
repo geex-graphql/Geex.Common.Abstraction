@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Geex.Common.Abstractions;
@@ -33,6 +34,97 @@ namespace System.Linq
             if (source == null)
                 throw new ArgumentNullException("source");
             return source.Select(x => (TResult)x);
+        }
+
+        public static IQueryable<TEntityType> WhereWithPostFilter<TEntityType>(this IQueryable<TEntityType> source, Expression<Func<TEntityType, bool>> expression)
+        {
+            var postExpression = default(Expression<Func<TEntityType, bool>>);
+            Expression ProcessUncomputableExpressions(Expression exp, ExpressionType mergeType)
+            {
+                switch (exp.NodeType)
+                {
+                    case ExpressionType.AndAlso:
+                        {
+                            var binary = exp as BinaryExpression;
+                            var left = binary.Left;
+                            var right = binary.Right;
+                            left = ProcessUncomputableExpressions(left, binary.NodeType);
+                            right = ProcessUncomputableExpressions(right, binary.NodeType);
+                            postExpression = Expression.Lambda<Func<TEntityType, bool>>(postExpression == default ? exp : Expression.AndAlso(postExpression.Body, exp), expression.Parameters);
+                            exp = binary.Update(left, binary.Conversion, right);
+                            break;
+                        }
+                    case ExpressionType.OrElse:
+                        {
+                            var binary = exp as BinaryExpression;
+                            var left = binary.Left;
+                            var right = binary.Right;
+                            left = ProcessUncomputableExpressions(left, binary.NodeType);
+                            right = ProcessUncomputableExpressions(right, binary.NodeType);
+                            postExpression = Expression.Lambda<Func<TEntityType, bool>>(postExpression == default ? exp : Expression.OrElse(postExpression.Body, exp), expression.Parameters);
+                            exp = binary.Update(left, binary.Conversion, right);
+                            break;
+                        }
+                    case ExpressionType.Call:
+                        {
+                            var methodCallExp = exp as MethodCallExpression;
+                            if (methodCallExp.Object is not MemberExpression memberExp) return exp;
+                            while (memberExp.Expression is MemberExpression nestedMemberExp)
+                            {
+                                memberExp = nestedMemberExp;
+                            }
+
+                            if (memberExp.Member is not PropertyInfo propertyInfo) return exp;
+                            //if (!PostFilterFields.ContainsKey(propertyInfo.GetHashCode())) return exp;
+                            // 如果是postfilter属性
+
+                            switch (mergeType)
+                            {
+                                case ExpressionType.OrElse:
+                                    postExpression = Expression.Lambda<Func<TEntityType, bool>>(postExpression == default ? exp : Expression.OrElse(postExpression.Body, exp), expression.Parameters);
+                                    exp = Expression.Constant(true);
+                                    return exp;
+                                default:
+                                    postExpression = Expression.Lambda<Func<TEntityType, bool>>(postExpression == default ? exp : Expression.AndAlso(postExpression.Body, exp), expression.Parameters);
+                                    exp = Expression.Constant(true);
+                                    return exp;
+                            }
+                        }
+                    default:
+                        {
+                            var binary = exp as BinaryExpression;
+                            if (binary.Left is not MemberExpression memberExp) return exp;
+                            while (memberExp.Expression is MemberExpression nestedMemberExp)
+                            {
+                                memberExp = nestedMemberExp;
+                            }
+
+                            if (memberExp.Member is not PropertyInfo propertyInfo) return exp;
+                            //if (!PostFilterFields.ContainsKey(propertyInfo.GetHashCode())) return exp;
+                            // 如果是postfilter属性
+                            switch (mergeType)
+                            {
+                                case ExpressionType.OrElse:
+                                    postExpression = Expression.Lambda<Func<TEntityType, bool>>(postExpression == default ? exp : Expression.OrElse(postExpression.Body, exp), expression.Parameters);
+                                    exp = Expression.Constant(true);
+                                    return exp;
+                                default:
+                                    postExpression = Expression.Lambda<Func<TEntityType, bool>>(postExpression == default ? exp : Expression.AndAlso(postExpression.Body, exp), expression.Parameters);
+                                    exp = Expression.Constant(true);
+                                    return exp;
+                            }
+                        }
+                }
+                return exp;
+            }
+            expression = expression.Update(ProcessUncomputableExpressions(expression.Body, expression.Body.NodeType), expression.Parameters);
+            var data = source.Where<TEntityType>(expression).ToList().AsQueryable();
+            if (postExpression != default)
+            {
+                data = data.Where<TEntityType>(postExpression);
+            }
+
+            return data;
         }
     }
 }

@@ -43,6 +43,7 @@ using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Entities;
+using MongoDB.Entities.Interceptors;
 
 using StackExchange.Redis.Extensions.Core;
 
@@ -95,7 +96,20 @@ namespace Geex.Common
             context.Services.AddObjectAccessor<IApplicationBuilder>();
 
             context.Services.AddHealthChecks();
+
             base.ConfigureServices(context);
+        }
+
+        public override void OnApplicationInitialization(ApplicationInitializationContext context)
+        {
+            DbContext.RegisterDataFiltersForAll(context.ServiceProvider.GetServices<IDataFilter>().ToArray());
+            base.OnApplicationInitialization(context);
+        }
+
+        public override void PostConfigureServices(ServiceConfigurationContext context)
+        {
+
+            base.PostConfigureServices(context);
         }
     }
 }

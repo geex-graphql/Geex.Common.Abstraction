@@ -14,6 +14,8 @@
         public static GeexClaimType FullName { get; } = new GeexClaimType(nameof(FullName), _FullName);
         public const string _Org = "org";
         public static GeexClaimType Org { get; } = new GeexClaimType(nameof(Org), _Org);
+        public const string _Role = "role";
+        public static GeexClaimType Role { get; } = new GeexClaimType(nameof(Role), _Role);
 
         public GeexClaimType(string name, string value) : base(name, value)
         {
