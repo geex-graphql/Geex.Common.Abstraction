@@ -55,10 +55,6 @@ namespace Geex.Common
 {
     public class GeexCoreModule : GeexModule<GeexCoreModule>
     {
-        static GeexCoreModule()
-        {
-            BsonSerializer.RegisterSerializer(new DateTimeOffsetSupportingBsonDateTimeSerializer());
-        }
         public override void PreConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddTransient(typeof(LazyFactory<>));
