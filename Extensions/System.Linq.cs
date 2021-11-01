@@ -69,6 +69,7 @@ namespace System.Linq
                     case ExpressionType.Call:
                         {
                             var methodCallExp = exp as MethodCallExpression;
+                            // bug:这里只处理了实例方法调用, 可能需要处理扩展方法
                             if (methodCallExp.Object is not MemberExpression memberExp) return exp;
                             while (memberExp.Expression is MemberExpression nestedMemberExp)
                             {

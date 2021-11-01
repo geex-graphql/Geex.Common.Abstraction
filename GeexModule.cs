@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 using Geex.Common.Abstraction;
 
@@ -138,6 +139,12 @@ namespace Geex.Common.Abstractions
                 {
                     options.AddDefaultPolicy(x =>
                         x.SetIsOriginAllowed(x => true).AllowAnyHeader().AllowAnyMethod().AllowCredentials());
+                }
+                else
+                {
+                    var corsRegex = Configuration.GetValue<string>("CorsRegex");
+                    var regex = new Regex(corsRegex, RegexOptions.Compiled);
+                    options.AddDefaultPolicy(x => x.SetIsOriginAllowed(origin => regex.Match(origin).Success).AllowAnyHeader().AllowAnyMethod().AllowCredentials());
                 }
             });
             base.ConfigureServices(context);
