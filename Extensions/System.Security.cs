@@ -27,7 +27,7 @@ namespace System.Security.Claims
             return claim?.Value;
         }
 
-        public static string[]? FindOrgIds(this ClaimsPrincipal principal)
+        public static string[]? FindOrgCodes(this ClaimsPrincipal principal)
         {
             Check.NotNull(principal, nameof(principal));
             IEnumerable<Claim> claims = principal.Claims;
@@ -35,7 +35,7 @@ namespace System.Security.Claims
                 ? claims.FirstOrDefault((Func<Claim, bool>)(c => c.Type == GeexClaimType.Org))
                 : null;
             if (claim == null || claim.Value.IsNullOrWhiteSpace())
-                return default;
+                return Array.Empty<string>();
             return claim?.Value?.ToObject<string[]>();
         }
 
