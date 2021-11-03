@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -6,6 +7,8 @@ using System.Transactions;
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
+
+using MediatR;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -65,6 +68,7 @@ namespace Geex.Common
 
     public interface IUnitOfWork
     {
+
         Task CommitAsync();
     }
 
@@ -76,6 +80,7 @@ namespace Geex.Common
         {
             _task = task;
         }
+
         public async Task CommitAsync()
         {
             await _task.Invoke();

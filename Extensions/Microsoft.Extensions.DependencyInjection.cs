@@ -12,6 +12,7 @@ using Geex.Common;
 using Geex.Common.Abstraction;
 using Geex.Common.Abstraction.Auditing;
 using Geex.Common.Abstraction.Gql;
+using Geex.Common.Abstraction.Storage;
 using Geex.Common.Abstractions;
 using Geex.Common.Gql;
 using Geex.Common.Gql.Roots;
@@ -45,7 +46,7 @@ using MongoDB.Entities;
 
 using Volo.Abp.Modularity;
 
-using Entity = Geex.Common.Abstractions.Entity;
+using Entity = Geex.Common.Abstraction.Storage.Entity;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection
@@ -62,13 +63,11 @@ namespace Microsoft.Extensions.DependencyInjection
             //builder.AddScoped(x => new DbContext(transactional: true));
             builder.AddScoped<IUnitOfWork>(x => new WrapperUnitOfWork(async () =>
             {
-                while (Entity._domainEvents.TryDequeue(out var notification))
-                {
-                    await x.GetService<IMediator>().Publish(notification);
-                }
-                await x.GetService<DbContext>().CommitAsync();
+                var dbContext = x.GetService<DbContext>();
+                await dbContext.CommitAsync();
             }));
-            builder.AddScoped<DbContext>(x => new DbContext(x, transactional: true));
+            builder.AddScoped(x => new GeexDbContext(x, transactional: true));
+            builder.AddScoped<DbContext>(x => x.GetService<GeexDbContext>());
             return builder;
         }
 

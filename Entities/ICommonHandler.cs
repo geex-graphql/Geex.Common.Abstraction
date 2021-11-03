@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Geex.Common.Abstraction.Gql.Inputs;
+using Geex.Common.Abstraction.Storage;
 using Geex.Common.Abstractions;
 
 using MediatR;
@@ -19,7 +20,7 @@ namespace Geex.Common.Abstraction.Entities
         IRequestHandler<QueryInput<TInterface>, IQueryable<TInterface>>
         where TInterface : IEntity where TEntity : TInterface
     {
-        public DbContext DbContext { get; }
+        public GeexDbContext DbContext { get; }
 
         async Task<IQueryable<TInterface>> IRequestHandler<QueryInput<TInterface>, IQueryable<TInterface>>.Handle(QueryInput<TInterface> request, CancellationToken cancellationToken)
         {
