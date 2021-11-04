@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Geex.Common.Abstractions;
 
 using MediatR;
 
@@ -12,6 +15,8 @@ using MongoDB.Driver;
 using MongoDB.Entities;
 
 using Volo.Abp;
+
+using BusinessException = Geex.Common.Abstractions.BusinessException;
 
 namespace Geex.Common.Abstraction.Storage
 {
@@ -48,7 +53,15 @@ namespace Geex.Common.Abstraction.Storage
         public override async Task CommitAsync(CancellationToken cancellation = default)
         {
             var entities = Local.TypedCacheDictionary.Values.SelectMany(y => y.Values).OfType<Entity>();
-            var events = entities.Select(entity => entity.DomainEvents).Where(x => x != default);
+            foreach (var entity in entities)
+            {
+                var validateResult = entity.Validate(new ValidationContext(entity, ServiceProvider, null));
+                if (validateResult.Any(x => x != ValidationResult.Success))
+                {
+                    throw new BusinessException(GeexExceptionType.ValidationFailed, null, string.Join("\\\n", validateResult.Select(x => x.ErrorMessage)));
+                }
+            }
+            var events = entities.Select(entity => entity.DomainEvents);
             foreach (var eventQueue in events)
             {
                 while (eventQueue.TryDequeue(out var @event))
