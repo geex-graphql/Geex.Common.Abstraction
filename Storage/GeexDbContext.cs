@@ -27,7 +27,7 @@ namespace Geex.Common.Abstraction.Storage
             Check.NotNull(entity, nameof(entity));
             if (entity is Entity geexEntity && entity.Id.IsNullOrEmpty())
             {
-                geexEntity.DomainEvents.Enqueue(new EntityCreatedEvent<T>((T)(object)geexEntity));
+                geexEntity.DomainEvents.Enqueue(new EntityCreatedNotification<T>((T)(object)geexEntity));
             }
             return base.Attach(entity);
         }
@@ -47,8 +47,8 @@ namespace Geex.Common.Abstraction.Storage
         /// <param name="cancellation">An optional cancellation token</param>
         public override async Task CommitAsync(CancellationToken cancellation = default)
         {
-            var entities = Local.TypedCacheDictionary.Values.SelectMany(y => y.Values);
-            var events = entities.OfType<Entity>().Select(entity => entity.DomainEvents);
+            var entities = Local.TypedCacheDictionary.Values.SelectMany(y => y.Values).OfType<Entity>();
+            var events = entities.Select(entity => entity.DomainEvents).Where(x => x != default);
             foreach (var eventQueue in events)
             {
                 while (eventQueue.TryDequeue(out var @event))

@@ -10,6 +10,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 using MongoDB.Entities;
 
+using Entity = Geex.Common.Abstraction.Storage.Entity;
+
 namespace Geex.Common.Abstraction.Auditing
 {
     public interface IAuditEntity : IEntity
@@ -29,7 +31,7 @@ namespace Geex.Common.Abstraction.Auditing
             {
                 this.AuditStatus |= AuditStatus.Submitted;
                 this.AuditRemark = remark;
-                await this.DbContext.ServiceProvider.GetRequiredService<IMediator>().Publish(new EntitySubmittedNotification<TEntity>(this));
+                (this as Entity)?.AddDomainEvent(new EntitySubmittedNotification<TEntity>(this));
             }
             else
             {
@@ -43,7 +45,7 @@ namespace Geex.Common.Abstraction.Auditing
             {
                 this.AuditStatus |= AuditStatus.Audited;
                 this.AuditRemark = remark;
-                await this.DbContext.ServiceProvider.GetRequiredService<IMediator>().Publish(new EntityAuditedNotification<TEntity>(this));
+                (this as Entity)?.AddDomainEvent(new EntityAuditedNotification<TEntity>(this));
             }
             else
             {
@@ -57,7 +59,7 @@ namespace Geex.Common.Abstraction.Auditing
             {
                 this.AuditStatus ^= AuditStatus.Submitted;
                 this.AuditRemark = remark;
-                await this.DbContext.ServiceProvider.GetRequiredService<IMediator>().Publish(new EntityUnsubmittedNotification<TEntity>(this));
+                (this as Entity)?.AddDomainEvent(new EntityUnsubmittedNotification<TEntity>(this));
             }
             else
             {
@@ -71,7 +73,7 @@ namespace Geex.Common.Abstraction.Auditing
             {
                 this.AuditStatus ^= AuditStatus.Audited;
                 this.AuditRemark = remark;
-                await this.DbContext.ServiceProvider.GetRequiredService<IMediator>().Publish(new EntityUnauditedNotification<TEntity>(this));
+                (this as Entity)?.AddDomainEvent(new EntityUnauditedNotification<TEntity>(this));
             }
             else
             {

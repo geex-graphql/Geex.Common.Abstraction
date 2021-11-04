@@ -19,7 +19,7 @@ namespace Geex.Common.Abstraction
         /// </summary>
         public static Task<DeleteResult> DeleteAsync<T>(this T entity) where T : Entity
         {
-            entity.AddDomainEvent(new EntityDeletedEvent<T>(entity));
+            entity.AddDomainEvent(new EntityDeletedNotification<T>(entity));
             return DB.DeleteAsync<T>(entity.Id, (entity as IEntity).DbContext);
         }
 
@@ -28,7 +28,7 @@ namespace Geex.Common.Abstraction
             var enumerable = entities.ToList();
             foreach (var entity in enumerable)
             {
-                entity.AddDomainEvent(new EntityDeletedEvent<T>(entity));
+                entity.AddDomainEvent(new EntityDeletedNotification<T>(entity));
             }
             return DB.DeleteAsync<T>(enumerable.Select(e => e.Id), (enumerable.FirstOrDefault() as IEntity)?.DbContext);
         }
