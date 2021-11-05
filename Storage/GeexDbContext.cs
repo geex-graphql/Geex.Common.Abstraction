@@ -14,6 +14,8 @@ using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using MongoDB.Entities;
 
+using MoreLinq;
+
 using Volo.Abp;
 
 using BusinessException = Geex.Common.Abstractions.BusinessException;
@@ -22,11 +24,13 @@ namespace Geex.Common.Abstraction.Storage
 {
     public class GeexDbContext : DbContext
     {
-        public GeexDbContext(IServiceProvider serviceProvider = default, string database = default, bool transactional = false,
+        public GeexDbContext(IServiceProvider serviceProvider = default, string database = default,
+            bool transactional = false,
             ClientSessionOptions options = null) : base(serviceProvider, database, transactional, options)
         {
 
         }
+
         public override T Attach<T>(T entity)
         {
             Check.NotNull(entity, nameof(entity));
@@ -34,6 +38,7 @@ namespace Geex.Common.Abstraction.Storage
             {
                 geexEntity.DomainEvents.Enqueue(new EntityCreatedNotification<T>((T)(object)geexEntity));
             }
+
             return base.Attach(entity);
         }
 
@@ -43,6 +48,7 @@ namespace Geex.Common.Abstraction.Storage
             {
                 this.Attach(entity);
             }
+
             return entities;
         }
 
@@ -53,20 +59,28 @@ namespace Geex.Common.Abstraction.Storage
         public override async Task CommitAsync(CancellationToken cancellation = default)
         {
             var entities = Local.TypedCacheDictionary.Values.SelectMany(y => y.Values).OfType<Entity>();
+            var eventQueue = new Queue<INotification>();
             foreach (var entity in entities)
             {
                 var validateResult = entity.Validate(new ValidationContext(entity, ServiceProvider, null));
                 if (validateResult.Any(x => x != ValidationResult.Success))
                 {
-                    throw new BusinessException(GeexExceptionType.ValidationFailed, null, string.Join("\\\n", validateResult.Select(x => x.ErrorMessage)));
+                    throw new BusinessException(GeexExceptionType.ValidationFailed, null,
+                        string.Join("\\\n", validateResult.Select(x => x.ErrorMessage)));
+                }
+
+                while (entity.DomainEvents.TryDequeue(out var @event))
+                {
+                    eventQueue.Enqueue(@event);
                 }
             }
-            var events = entities.Select(entity => entity.DomainEvents);
-            foreach (var eventQueue in events)
+
+            var mediator = ServiceProvider.GetService<IMediator>();
+            if (eventQueue.Any())
             {
                 while (eventQueue.TryDequeue(out var @event))
                 {
-                    await ServiceProvider.GetService<IMediator>().Publish(@event, cancellation);
+                    await mediator?.Publish(@event, cancellation);
                 }
             }
 
