@@ -27,18 +27,18 @@ using Volo.Abp.Modularity;
 
 namespace Geex.Common.Abstractions
 {
-    public abstract class GeexModule<T> : GeexModule where T : GeexModule
+    public abstract class GeexModule<TModule> : GeexModule where TModule : GeexModule
     {
         public IConfiguration Configuration { get; private set; }
 
-        public virtual void ConfigureModuleOptions(Action<IGeexModuleOption<T>> optionsAction)
+        public virtual void ConfigureModuleOptions(Action<IGeexModuleOption<TModule>> optionsAction)
         {
-            var type = this.GetType().Assembly.ExportedTypes.FirstOrDefault(x => x.IsAssignableTo<IGeexModuleOption<T>>());
+            var type = this.GetType().Assembly.ExportedTypes.FirstOrDefault(x => x.IsAssignableTo<IGeexModuleOption<TModule>>());
             if (type == default)
             {
-                throw new InvalidOperationException($"{nameof(IGeexModuleOption<T>)} of {nameof(T)} is not declared, cannot be configured.");
+                throw new InvalidOperationException($"{nameof(IGeexModuleOption<TModule>)} of {nameof(TModule)} is not declared, cannot be configured.");
             }
-            var options = (IGeexModuleOption<T>?)this.ServiceConfigurationContext.Services.GetSingletonInstanceOrNull(type);
+            var options = (IGeexModuleOption<TModule>?)this.ServiceConfigurationContext.Services.GetSingletonInstanceOrNull(type);
             optionsAction.Invoke(options!);
             this.ServiceConfigurationContext.Services.TryAdd(new ServiceDescriptor(type, options));
         }
@@ -53,15 +53,18 @@ namespace Geex.Common.Abstractions
 
         private void InitModuleOptions()
         {
-            var type = this.GetType().Assembly.ExportedTypes.FirstOrDefault(x => x.IsAssignableTo<IGeexModuleOption<T>>());
+            var type = this.GetType().Assembly.ExportedTypes.FirstOrDefault(x => x.IsAssignableTo<IGeexModuleOption<TModule>>());
             if (type == default)
             {
                 return;
             }
-            var options = Activator.CreateInstance(type) as IGeexModuleOption<T>;
+            var options = Activator.CreateInstance(type) as IGeexModuleOption<TModule>;
             Configuration.GetSection(type.Name).Bind(options);
             this.ServiceConfigurationContext.Services.TryAdd(new ServiceDescriptor(type, options));
+            this.ServiceConfigurationContext.Services.TryAdd(new ServiceDescriptor(typeof(IGeexModuleOption<TModule>), options));
         }
+
+        protected IGeexModuleOption<TModule> ModuleOptions => this.ServiceConfigurationContext.Services.GetSingletonInstance<IGeexModuleOption<TModule>>();
 
         public virtual void ConfigureModuleEntityMaps()
         {
@@ -86,7 +89,7 @@ namespace Geex.Common.Abstractions
             this.ConfigureModuleEntityMaps();
             context.Services.AddMediatR(configuration: configuration =>
             {
-            }, typeof(T));
+            }, typeof(TModule));
             base.ConfigureServices(context);
         }
 
