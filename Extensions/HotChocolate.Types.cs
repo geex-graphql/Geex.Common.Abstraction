@@ -54,7 +54,7 @@ namespace HotChocolate.Types
         {
             @this.Field(x => x.Id);
             @this.Field(x => x.CreatedOn);
-            @this.Ignore(x => x.Validate(default));
+            @this.Field(x => x.Validate(default)).Ignore();
             if (typeof(T).IsAssignableTo<IAuditEntity>())
             {
                 @this.Field(x => ((IAuditEntity)x).AuditStatus);
@@ -62,16 +62,31 @@ namespace HotChocolate.Types
             }
         }
 
-        public static void ConfigIEntity<T>(
-            this IObjectTypeDescriptor<T> @this) where T : IEntity
+        public static IInterfaceTypeDescriptor<T> IgnoreMethods<T>(
+      this IInterfaceTypeDescriptor<T> descriptor)
         {
-            @this.Field(x => x.Id);
-            @this.Field(x => x.CreatedOn);
-            if (typeof(T).IsAssignableTo<IAuditEntity>())
+            if (descriptor == null)
+                throw new ArgumentNullException(nameof(descriptor));
+            // specialname过滤属性
+            foreach (var method in typeof(T).GetMethods().Where(x => !x.IsSpecialName))
             {
-                @this.Field(x => ((IAuditEntity)x).AuditStatus);
-                @this.Field(x => ((IAuditEntity)x).Submittable);
+                var exp = Expression.Lambda(Expression.Convert(Expression.Call(Expression.Parameter(typeof(T), "x"), method, method.GetParameters().Select(x => Expression.Default(x.ParameterType))), typeof(object)), Expression.Parameter(typeof(T), "x"));
+                descriptor.Field(exp as Expression<Func<T, object>>).Ignore();
             }
+            return descriptor;
+        }
+
+        public static IObjectTypeDescriptor<T> IgnoreMethods<T>(
+      this IObjectTypeDescriptor<T> descriptor)
+        {
+            if (descriptor == null)
+                throw new ArgumentNullException(nameof(descriptor));
+            // specialname过滤属性
+            foreach (var method in typeof(T).GetMethods().Where(x => !x.IsSpecialName))
+            {
+                descriptor.Field(method).Ignore();
+            }
+            return descriptor;
         }
 
         public static IFilterFieldDescriptor PostFilterField<T, TField>(
