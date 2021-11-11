@@ -27,6 +27,8 @@ using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using MongoDB.Entities;
 
+using Entity = Geex.Common.Abstraction.Storage.Entity;
+
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types
 {
@@ -48,6 +50,19 @@ namespace HotChocolate.Types
         }
 
         public static void ConfigEntity<T>(
+            this IObjectTypeDescriptor<T> @this) where T : Entity
+        {
+            @this.Field(x => x.Id);
+            @this.Field(x => x.CreatedOn);
+            @this.Ignore(x => x.Validate(default));
+            if (typeof(T).IsAssignableTo<IAuditEntity>())
+            {
+                @this.Field(x => ((IAuditEntity)x).AuditStatus);
+                @this.Field(x => ((IAuditEntity)x).Submittable);
+            }
+        }
+
+        public static void ConfigIEntity<T>(
             this IObjectTypeDescriptor<T> @this) where T : IEntity
         {
             @this.Field(x => x.Id);
@@ -92,6 +107,14 @@ namespace HotChocolate.Types
 
 
         public static string GetAggregateAuthorizePrefix<TAggregate>(this IObjectTypeDescriptor<TAggregate> @this)
+        {
+
+            var moduleName = typeof(TAggregate).Name.RemovePreFix("I").ToCamelCase();
+            var prefix = $"query_{moduleName}";
+            return prefix;
+        }
+
+        public static string GetAggregateAuthorizePrefix<TAggregate>(this IInterfaceTypeDescriptor<TAggregate> @this)
         {
 
             var moduleName = typeof(TAggregate).Name.RemovePreFix("I").ToCamelCase();

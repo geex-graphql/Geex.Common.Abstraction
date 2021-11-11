@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -81,6 +82,11 @@ namespace Geex.Common.Abstraction.Storage
             }
 
             await base.CommitAsync(cancellation);
+        }
+
+        public override IEnumerable<Assembly> FindMigrationAssemblies(Type targetType)
+        {
+            return GeexModule.KnownModuleAssembly;
         }
     }
 }
