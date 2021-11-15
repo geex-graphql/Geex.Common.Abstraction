@@ -70,8 +70,17 @@ namespace HotChocolate.Types
             // specialname过滤属性
             foreach (var method in typeof(T).GetMethods().Where(x => !x.IsSpecialName))
             {
-                var exp = Expression.Lambda(Expression.Convert(Expression.Call(Expression.Parameter(typeof(T), "x"), method, method.GetParameters().Select(x => Expression.Default(x.ParameterType))), typeof(object)), Expression.Parameter(typeof(T), "x"));
-                descriptor.Field(exp as Expression<Func<T, object>>).Ignore();
+                if (method.ReturnType != typeof(void))
+                {
+                    var exp = Expression.Lambda(Expression.Convert(Expression.Call(Expression.Parameter(typeof(T), "x"), method, method.GetParameters().Select(x => Expression.Default(x.ParameterType))), typeof(object)), Expression.Parameter(typeof(T), "x"));
+                    descriptor.Field(exp as Expression<Func<T, object>>).Ignore();
+                }
+                //else
+                //{
+                //    var exp = Expression.Lambda(Expression.Call(Expression.Parameter(typeof(T), "x"), method, method.GetParameters().Select(x => Expression.Default(x.ParameterType))), Expression.Parameter(typeof(T), "x"));
+                //    descriptor.Field(exp as Expression<Func<T, object>>).Ignore();
+                //}
+                //descriptor.Field(method.Name).Ignore();
             }
             return descriptor;
         }
