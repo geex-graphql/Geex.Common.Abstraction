@@ -12,8 +12,19 @@ namespace Geex.Common.Abstraction
     public class GeexCoreModuleOptions : IGeexModuleOption<GeexCoreModule>
     {
         public string ConnectionString { get; set; } = "mongodb://localhost:27017/geex";
+        /// <summary>
+        /// 后端host基地址
+        /// </summary>
         public string Host { get; set; } = "http://localhost:8000";
         public string AppName { get; set; } = "geex";
         public RedisConfiguration? Redis { get; set; }
+        /// <summary>
+        /// 是否在response中抛出异常信息
+        /// </summary>
+        public bool IncludeExceptionDetails { get; set; } = true;
+        /// <summary>
+        /// 分页获取数据最多数量
+        /// </summary>
+        public int? MaxPageSize { get; set; } = 1000;
     }
 }

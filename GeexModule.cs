@@ -27,6 +27,10 @@ using Volo.Abp.Modularity;
 
 namespace Geex.Common.Abstractions
 {
+    public abstract class GeexModule<TModule, TModuleOptions> : GeexModule<TModule> where TModule : GeexModule where TModuleOptions : IGeexModuleOption<TModule>
+    {
+        protected new TModuleOptions ModuleOptions => this.ServiceConfigurationContext.Services.GetSingletonInstance<TModuleOptions>();
+    }
     public abstract class GeexModule<TModule> : GeexModule where TModule : GeexModule
     {
         public IConfiguration Configuration { get; private set; }
@@ -64,7 +68,7 @@ namespace Geex.Common.Abstractions
             this.ServiceConfigurationContext.Services.TryAdd(new ServiceDescriptor(typeof(IGeexModuleOption<TModule>), options));
         }
 
-        protected IGeexModuleOption<TModule> ModuleOptions => this.ServiceConfigurationContext.Services.GetSingletonInstance<IGeexModuleOption<TModule>>();
+        protected virtual IGeexModuleOption<TModule> ModuleOptions => this.ServiceConfigurationContext.Services.GetSingletonInstance<IGeexModuleOption<TModule>>();
 
         public virtual void ConfigureModuleEntityMaps()
         {

@@ -53,7 +53,7 @@ using Volo.Abp.Modularity;
 
 namespace Geex.Common
 {
-    public class GeexCoreModule : GeexModule<GeexCoreModule>
+    public class GeexCoreModule : GeexModule<GeexCoreModule, GeexCoreModuleOptions>
     {
         public override void PreConfigureServices(ServiceConfigurationContext context)
         {
@@ -65,6 +65,7 @@ namespace Geex.Common
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            var moduleOptions = this.ModuleOptions;
             context.Services.AddStorage();
             var schemaBuilder = context.Services.AddGraphQLServer();
             context.Services.AddStackExchangeRedisExtensions();
@@ -77,6 +78,19 @@ namespace Geex.Common
                     converter = o => o;
                     return source.GetBaseClasses(false).Intersect(target.GetBaseClasses(false)).Any();
                 })
+                .ModifyRequestOptions(options =>
+               {
+                   options.IncludeExceptionDetails = moduleOptions.IncludeExceptionDetails;
+               })
+                .SetPagingOptions(new PagingOptions()
+                {
+                    DefaultPageSize = 10,
+                    IncludeTotalCount = true,
+                    MaxPageSize = moduleOptions.MaxPageSize
+                })
+                .AddErrorFilter<LoggingErrorFilter>(_ =>
+                    new LoggingErrorFilter(context.Services.GetServiceProviderOrNull()
+                        .GetService<ILoggerProvider>()))
                 .AddValidationVisitor<ExtraArgsTolerantValidationVisitor>()
                 .AddTransactionScopeHandler<GeexTransactionScopeHandler>()
                 .AddFiltering()
