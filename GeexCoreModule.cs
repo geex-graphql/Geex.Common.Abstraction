@@ -55,14 +55,6 @@ namespace Geex.Common
 {
     public class GeexCoreModule : GeexModule<GeexCoreModule, GeexCoreModuleOptions>
     {
-        public override void PreConfigureServices(ServiceConfigurationContext context)
-        {
-            context.Services.AddTransient(typeof(LazyFactory<>));
-            context.Services.AddTransient<ClaimsPrincipal>(x =>
-                x.GetService<IHttpContextAccessor>()?.HttpContext?.User);
-            base.PreConfigureServices(context);
-        }
-
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var moduleOptions = this.ModuleOptions;
@@ -107,6 +99,13 @@ namespace Geex.Common
 
             context.Services.AddHealthChecks();
 
+            context.Services.AddTransient(typeof(LazyFactory<>));
+            if (context.Services.IsAdded<IApplicationBuilder>())
+            {
+                context.Services.AddTransient<ClaimsPrincipal>(x =>
+                x.GetService<IHttpContextAccessor>()?.HttpContext?.User);
+            }
+
             base.ConfigureServices(context);
         }
 
@@ -114,12 +113,6 @@ namespace Geex.Common
         {
             DbContext.RegisterDataFiltersForAll(context.ServiceProvider.GetServices<IDataFilter>().ToArray());
             base.OnApplicationInitialization(context);
-        }
-
-        public override void PostConfigureServices(ServiceConfigurationContext context)
-        {
-
-            base.PostConfigureServices(context);
         }
     }
 }
