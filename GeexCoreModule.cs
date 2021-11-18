@@ -100,11 +100,8 @@ namespace Geex.Common
             context.Services.AddHealthChecks();
 
             context.Services.AddTransient(typeof(LazyFactory<>));
-            if (context.Services.IsAdded<IApplicationBuilder>())
-            {
-                context.Services.AddTransient<ClaimsPrincipal>(x =>
-                x.GetService<IHttpContextAccessor>()?.HttpContext?.User);
-            }
+            context.Services.AddTransient<ClaimsPrincipal>(x =>
+            x.GetService<IHttpContextAccessor>()?.HttpContext?.User);
 
             base.ConfigureServices(context);
         }
