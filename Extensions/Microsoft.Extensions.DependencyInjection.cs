@@ -178,7 +178,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(collection));
             if (descriptor == null)
                 throw new ArgumentNullException(nameof(descriptor));
-            var serviceDescriptors = collection.Where((Func<ServiceDescriptor, bool>)(s => s.ServiceType == descriptor.ServiceType));
+            var serviceDescriptors = collection.Where((Func<ServiceDescriptor, bool>)(s => s.ServiceType == descriptor.ServiceType)).ToList();
             if (serviceDescriptors.Any())
                 collection.RemoveAll(serviceDescriptors);
             collection.Add(descriptor);
