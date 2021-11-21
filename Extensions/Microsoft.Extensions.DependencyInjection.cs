@@ -61,11 +61,7 @@ namespace Microsoft.Extensions.DependencyInjection
             mongoSettings.ApplicationName = commonModuleOptions.AppName;
             DB.InitAsync(mongoUrl.DatabaseName ?? commonModuleOptions.AppName, mongoSettings).Wait();
             //builder.AddScoped(x => new DbContext(transactional: true));
-            builder.AddScoped<IUnitOfWork>(x => new WrapperUnitOfWork(async () =>
-            {
-                var dbContext = x.GetService<DbContext>();
-                await dbContext.CommitAsync();
-            }));
+            builder.AddScoped<IUnitOfWork>(x => new WrapperUnitOfWork(x.GetService<DbContext>()));
             builder.AddScoped(x => new GeexDbContext(x, transactional: true));
             builder.AddScoped<DbContext>(x => x.GetService<GeexDbContext>());
             return builder;

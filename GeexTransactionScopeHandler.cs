@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 
@@ -11,6 +12,8 @@ using HotChocolate.Execution.Processing;
 using MediatR;
 
 using Microsoft.Extensions.DependencyInjection;
+
+using MongoDB.Entities;
 
 namespace Geex.Common
 {
@@ -66,24 +69,31 @@ namespace Geex.Common
         public void Dispose() => this.Transaction.Dispose();
     }
 
-    public interface IUnitOfWork
+    public interface IUnitOfWork : IDisposable
     {
 
-        Task CommitAsync();
+        Task CommitAsync(CancellationToken? cancellationToken = default);
     }
 
     public class WrapperUnitOfWork : IUnitOfWork
     {
-        private readonly Func<Task> _task;
+        private readonly DbContext _dbContext;
 
-        public WrapperUnitOfWork(Func<Task> task)
+        public WrapperUnitOfWork(DbContext dbContext)
         {
-            _task = task;
+            _dbContext = dbContext;
         }
 
-        public async Task CommitAsync()
+        public async Task CommitAsync(CancellationToken? cancellationToken = default)
         {
-            await _task.Invoke();
+            //this.taskSource = new TaskCompletionSource(_task.Invoke());
+            await this._dbContext.CommitAsync(cancellationToken ?? CancellationToken.None);
+        }
+
+        /// <summary>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</summary>
+        public void Dispose()
+        {
+            //this._dbContext.Dispose();
         }
     }
 }
