@@ -34,7 +34,10 @@ namespace Geex.Common.Abstraction.Storage
 
         public override T Attach<T>(T entity)
         {
-            Check.NotNull(entity, nameof(entity));
+            if (Equals(entity, default(T)))
+            {
+                return default;
+            }
             if (entity is Entity geexEntity && entity.Id.IsNullOrEmpty())
             {
                 this.DomainEvents.Enqueue(new EntityCreatedNotification<T>((T)(object)geexEntity));
