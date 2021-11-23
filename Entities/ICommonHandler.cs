@@ -24,6 +24,10 @@ namespace Geex.Common.Abstraction.Entities
 
         async Task<IQueryable<TInterface>> IRequestHandler<QueryInput<TInterface>, IQueryable<TInterface>>.Handle(QueryInput<TInterface> request, CancellationToken cancellationToken)
         {
+            if (request.Filter != default)
+            {
+                return (IQueryable<TInterface>)DbContext.Queryable<TEntity>().Where(request.Filter.CastParamType<TEntity>());
+            }
             return (IQueryable<TInterface>)DbContext.Queryable<TEntity>();
         }
     }
