@@ -32,7 +32,7 @@ namespace Geex.Common.Gql
             if (enumType.IsAssignableTo<IEnumeration>())
             {
                 var genericImplementation = enumType.GetBaseClasses().FirstOrDefault(x => x.Name == (typeof(Enumeration<,>).Name));
-                var values = ((System.Collections.IEnumerable)genericImplementation?.GetProperty(nameof(Enumeration.List))?.GetValue(null)).Cast<object>();
+                var values = ((System.Collections.IEnumerable)genericImplementation?.GetProperty(nameof(Enumeration.List))?.GetValue(null)).Cast<object>().Where(x=>x.GetType().IsAssignableTo(enumType));
                 if (!values.Any())
                 {
                     Console.WriteLine("enum no values");

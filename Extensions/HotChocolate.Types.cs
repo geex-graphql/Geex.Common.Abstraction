@@ -151,21 +151,23 @@ namespace HotChocolate.Types
             var trace = new StackTrace();
             //获取是哪个类来调用的
             var caller = trace.GetFrame(1).GetMethod();
-            var className = caller.DeclaringType.Name;
+            var callerDeclaringType = caller.DeclaringType;
+            var moduleName = callerDeclaringType.Assembly.GetName().Name.Split(".").Last();
+            var className = callerDeclaringType.Name;
             var prefix = "";
             if (className.Contains("Query"))
             {
-                prefix = $"query";
+                prefix = $"{moduleName}_query";
 
             }
             else if (className.Contains("Mutation"))
             {
-                prefix = $"mutation";
+                prefix = $"{moduleName}_mutation";
 
             }
             else if (className.Contains("Subscription"))
             {
-                prefix = $"subscription";
+                prefix = $"{moduleName}_subscription";
             }
 
             var propertyList = typeof(T).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
