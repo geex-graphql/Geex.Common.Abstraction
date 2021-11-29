@@ -77,9 +77,9 @@ namespace StackExchange.Redis.Extensions.Core
             return (await service.GetAsync<T>($"{typeof(T).Name}:{key}"));
         }
 
-        public static async Task<IDictionary<string, T>> GetAllNamedByKeyAsync<T>(this IRedisDatabase service, string key = default)
+        public static async Task<IDictionary<string, T>> GetAllNamedByKeyAsync<T>(this IRedisDatabase service, string searchPattern = default)
         {
-            var keys = await service.SearchKeysAsync($"{typeof(T).Name}:{key ?? "*"}");
+            var keys = await service.SearchKeysAsync($"{typeof(T).Name}:{searchPattern ?? "*"}");
             var result = (await service.GetAllAsync<T>(keys));
             return result;
         }
