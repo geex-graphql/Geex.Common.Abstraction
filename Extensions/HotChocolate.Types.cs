@@ -152,7 +152,7 @@ namespace HotChocolate.Types
             //获取是哪个类来调用的
             var caller = trace.GetFrame(1).GetMethod();
             var callerDeclaringType = caller.DeclaringType;
-            var moduleName = callerDeclaringType.Assembly.GetName().Name.Split(".").Last();
+            var moduleName = callerDeclaringType.Assembly.GetName().Name.Split(".").ToList().Where(x=>x != "Gql").Last().ToCamelCase();
             var className = callerDeclaringType.Name;
             var prefix = "";
             if (className.Contains("Query"))
