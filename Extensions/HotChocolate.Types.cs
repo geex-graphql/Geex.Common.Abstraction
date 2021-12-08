@@ -132,17 +132,18 @@ namespace HotChocolate.Types
 
         public static string GetAggregateAuthorizePrefix<TAggregate>(this IObjectTypeDescriptor<TAggregate> @this)
         {
-
-            var moduleName = typeof(TAggregate).Name.RemovePreFix("I").ToCamelCase();
-            var prefix = $"query_{moduleName}";
+            var moduleName = typeof(TAggregate).Assembly.GetName().Name.Split(".").ToList().Where(x => !x.IsIn("Gql", "Api", "Core", "Tests")).Last().ToCamelCase();
+            var entityName = typeof(TAggregate).Name.ToCamelCase();
+            var prefix = $"{moduleName}_query_{entityName}";
             return prefix;
         }
 
         public static string GetAggregateAuthorizePrefix<TAggregate>(this IInterfaceTypeDescriptor<TAggregate> @this)
         {
 
-            var moduleName = typeof(TAggregate).Name.RemovePreFix("I").ToCamelCase();
-            var prefix = $"query_{moduleName}";
+            var moduleName = typeof(TAggregate).Assembly.GetName().Name.Split(".").ToList().Where(x => !x.IsIn("Gql", "Api", "Core", "Tests")).Last().ToCamelCase();
+            var entityName = typeof(TAggregate).Name.RemovePreFix("I").ToCamelCase();
+            var prefix = $"{moduleName}_query_{entityName}";
             return prefix;
         }
 
@@ -152,7 +153,7 @@ namespace HotChocolate.Types
             //获取是哪个类来调用的
             var caller = trace.GetFrame(1).GetMethod();
             var callerDeclaringType = caller.DeclaringType;
-            var moduleName = callerDeclaringType.Assembly.GetName().Name.Split(".").ToList().Where(x=>x != "Gql").Last().ToCamelCase();
+            var moduleName = callerDeclaringType.Assembly.GetName().Name.Split(".").ToList().Where(x => !x.IsIn("Gql", "Api", "Core", "Tests")).Last().ToCamelCase();
             var className = callerDeclaringType.Name;
             var prefix = "";
             if (className.Contains("Query"))
