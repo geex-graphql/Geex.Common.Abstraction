@@ -91,5 +91,11 @@ namespace Geex.Common.Abstraction.Storage
         {
             return GeexModule.KnownModuleAssembly;
         }
+
+        public TResult RawCommand<TResult>(Command<TResult> command, ReadPreference readPreference = default,
+            CancellationToken cancellationToken = default)
+        {
+            return DB.DefaultDb.RunCommand(this.Session, command, readPreference, cancellationToken);
+        }
     }
 }
