@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,6 +16,12 @@ namespace Geex.Common.Abstraction.Gql
 {
     public class GeexResultSerializerWithCustomStatusCodes : DefaultHttpResultSerializer
     {
+        private readonly LazyFactory<ClaimsPrincipal> _claimsPrincipalFactory;
+
+        public GeexResultSerializerWithCustomStatusCodes(LazyFactory<ClaimsPrincipal> claimsPrincipalFactory)
+        {
+            _claimsPrincipalFactory = claimsPrincipalFactory;
+        }
         public override HttpStatusCode GetStatusCode(IExecutionResult result)
         {
             var baseStatusCode = base.GetStatusCode(result);
@@ -22,7 +29,10 @@ namespace Geex.Common.Abstraction.Gql
             if (result is IQueryResult && result.Errors?.Count > 0)
             {
                 if (result.Errors.Any(e => e.Code == ErrorCodes.Authentication.NotAuthorized || e.Code == ErrorCodes.Authentication.NotAuthenticated))
-                    return HttpStatusCode.Forbidden;
+                {
+                    var userId = _claimsPrincipalFactory.Value?.FindUserId();
+                    return userId.IsNullOrEmpty() ? HttpStatusCode.Unauthorized : HttpStatusCode.Forbidden;
+                }
 
                 if (result.Errors.Any(e => e.Exception is BusinessException business && business.ExceptionCode == GeexExceptionType.OnPurpose))
                 {

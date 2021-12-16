@@ -19,6 +19,7 @@ using Geex.Common.Gql.Roots;
 using Geex.Common.Gql.Types;
 
 using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Voyager;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution.Configuration;
@@ -70,13 +71,21 @@ namespace Microsoft.Extensions.DependencyInjection
         public static void UseGeexGraphQL(this IApplicationBuilder app)
         {
             app.UseWebSockets();
-            app.UseRouting()
-                .UseEndpoints(endpoints =>
+            app.UseEndpoints(endpoints =>
                 {
                     endpoints.MapGraphQL();
                 });
             app.UseVoyager("/graphql", "/voyager");
             app.UsePlayground("/graphql", "/playground");
+        }
+
+        public static IServiceCollection AddHttpResultSerializer<T>(
+      this IServiceCollection services, Func<IServiceProvider, T> instance)
+      where T : class, IHttpResultSerializer
+        {
+            services.RemoveAll<IHttpResultSerializer>();
+            services.AddSingleton<IHttpResultSerializer, T>(instance);
+            return services;
         }
         public static IRequestExecutorBuilder AddModuleTypes<TModule>(this IRequestExecutorBuilder schemaBuilder)
 

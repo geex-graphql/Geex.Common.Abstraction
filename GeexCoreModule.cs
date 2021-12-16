@@ -63,7 +63,7 @@ namespace Geex.Common
             context.Services.AddStackExchangeRedisExtensions();
             context.Services.AddInMemorySubscriptions();
             context.Services.AddSingleton(schemaBuilder);
-            context.Services.AddHttpResultSerializer<GeexResultSerializerWithCustomStatusCodes>();
+            context.Services.AddHttpResultSerializer(x => new GeexResultSerializerWithCustomStatusCodes(new LazyFactory<ClaimsPrincipal>(x)));
             schemaBuilder.AddConvention<ITypeInspector>(typeof(ClassEnumTypeConvention))
                 .AddTypeConverter((Type source, Type target, out ChangeType? converter) =>
                 {
@@ -108,6 +108,21 @@ namespace Geex.Common
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
+            var app = context.GetApplicationBuilder();
+            var _env = context.GetEnvironment();
+            app.UseCors();
+            app.UseRouting();
+
+            if (_env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            app.UseCookiePolicy(new CookiePolicyOptions
+            {
+                MinimumSameSitePolicy = SameSiteMode.Strict,
+            });
+
+            app.UseHealthChecks("/health-check");
             DbContext.RegisterDataFiltersForAll(context.ServiceProvider.GetServices<IDataFilter>().ToArray());
             base.OnApplicationInitialization(context);
         }

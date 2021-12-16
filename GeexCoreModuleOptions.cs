@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Geex.Common.Abstractions;
+
 using StackExchange.Redis.Extensions.Core.Configuration;
 
 namespace Geex.Common.Abstraction
@@ -22,6 +23,10 @@ namespace Geex.Common.Abstraction
         /// 是否在response中抛出异常信息
         /// </summary>
         public bool IncludeExceptionDetails { get; set; } = true;
+        /// <summary>
+        /// 是否使用migration自动初始化数据
+        /// </summary>
+        public bool AutoMigration { get; set; } = false;
         /// <summary>
         /// 分页获取数据最多数量
         /// </summary>

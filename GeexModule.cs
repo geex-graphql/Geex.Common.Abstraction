@@ -159,22 +159,14 @@ namespace Geex.Common.Abstractions
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            context.ServiceProvider.GetService<DbContext>().MigrateAsync<T>().Wait();
+            var coreModuleOptions = context.ServiceProvider.GetService<GeexCoreModuleOptions>();
+            if (coreModuleOptions.AutoMigration)
+            {
+                context.ServiceProvider.GetService<DbContext>().MigrateAsync<T>().Wait();
+            }
             var app = context.GetApplicationBuilder();
             var _env = context.GetEnvironment();
             var _configuration = context.GetConfiguration();
-            app.UseCors();
-            if (_env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-            app.UseCookiePolicy(new CookiePolicyOptions
-            {
-                MinimumSameSitePolicy = SameSiteMode.Strict,
-            });
-
-
-            app.UseHealthChecks("/health-check");
 
             base.OnApplicationInitialization(context);
             app.UseGeexGraphQL();
