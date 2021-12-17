@@ -1,5 +1,6 @@
 ﻿
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -152,6 +153,22 @@ namespace System.Security.Claims
 
             //Claim claim2 = claim1;
             //return claim2 == null || claim2.Value.IsNullOrWhiteSpace() ? new Guid?() : Guid.Parse(claim2.Value);
+        }
+
+        public static void AppendClaims(this ClaimsIdentity claimsIdentity, params Claim[] claims)
+        {
+            AppendClaims(claimsIdentity, claims.AsEnumerable());
+        }
+
+        public static void AppendClaims(this ClaimsIdentity claimsIdentity, IEnumerable<Claim> claims)
+        {
+            foreach (var claim in claims)
+            {
+                if (!claimsIdentity.HasClaim(claim.Type, claim.Value))
+                {
+                    claimsIdentity.AddClaim(claim);
+                }
+            }
         }
     }
 }

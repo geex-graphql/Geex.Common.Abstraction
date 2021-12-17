@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Geex.Common.Abstraction;
 using Geex.Common.Abstractions;
 
@@ -54,15 +56,18 @@ namespace StackExchange.Redis.Extensions.Core
 
         public static string GetUniqueId(this object obj)
         {
-            if (obj is IEntity entity)
+            switch (obj)
             {
-                return entity.Id;
+                case IEntity entity:
+                    return entity.Id;
+                case IHasId hasId:
+                    return hasId.Id;
+                case ClaimsPrincipal claimsPrincipal:
+                    return claimsPrincipal.FindUserId();
+                case IValueObject valueObject:
+                    return string.Join("", valueObject.EqualityComponents.Select(x => x.GetUniqueId()));
             }
 
-            if (obj is IValueObject valueObject)
-            {
-                return string.Join("", valueObject.EqualityComponents.Select(x => x.GetUniqueId()));
-            }
             var idProp = obj.GetType().GetProperty("Id");
             if (idProp != default)
             {
@@ -72,46 +77,52 @@ namespace StackExchange.Redis.Extensions.Core
             return obj.GetHashCode().ToString();
         }
 
-        public static async Task<T> GetNamedAsync<T>(this IRedisDatabase service, string key)
+        public static async Task<T> GetNamedAsync<T>(this IRedisDatabase service, string key, string @namespace = default)
         {
-            return (await service.GetAsync<T>($"{typeof(T).Name}:{key}"));
+            @namespace ??= typeof(T).Name;
+            return (await service.GetAsync<T>($"{@namespace}:{key}"));
         }
 
-        public static async Task<IDictionary<string, T>> GetAllNamedByKeyAsync<T>(this IRedisDatabase service, string searchPattern = default)
+        public static async Task<IDictionary<string, T>> GetAllNamedByKeyAsync<T>(this IRedisDatabase service, string @namespace = default, string searchPattern = default)
         {
-            var keys = await service.SearchKeysAsync($"{typeof(T).Name}:{searchPattern ?? "*"}");
+            @namespace ??= typeof(T).Name;
+            var keys = await service.SearchKeysAsync($"{@namespace}:{searchPattern ?? "*"}");
             var result = (await service.GetAllAsync<T>(keys));
             return result;
         }
 
-        public static async Task<bool> RemoveNamedAsync<T>(this IRedisDatabase service, string key)
+        public static async Task<bool> RemoveNamedAsync<T>(this IRedisDatabase service, string key, string @namespace = default)
         {
-            return await service.RemoveAsync($"{typeof(T).Name}:{key}");
+            @namespace ??= typeof(T).Name;
+            return await service.RemoveAsync($"{@namespace}:{key}");
         }
 
-        public static async Task<bool> RemoveAllNamedAsync<T>(this IRedisDatabase service)
+        public static async Task<bool> RemoveAllNamedAsync<T>(this IRedisDatabase service, string @namespace = default)
         {
-            return await service.RemoveAsync($"{typeof(T).Name}");
+            @namespace ??= typeof(T).Name;
+            return await service.RemoveAsync($"{@namespace}");
         }
 
-        public static async Task<T> GetAndRemoveAsync<T>(this IRedisDatabase service, T obj)
+        public static async Task<T> GetAndRemoveAsync<T>(this IRedisDatabase service, T obj, string @namespace = default)
         {
-            var result = await service.GetNamedAsync<T>(obj.GetUniqueId());
-            await service.RemoveNamedAsync<T>(obj.GetUniqueId());
+            var result = await service.GetNamedAsync<T>(obj.GetUniqueId(), @namespace);
+            await service.RemoveNamedAsync<T>(obj.GetUniqueId(), @namespace);
             return result;
         }
 
         public static async Task<bool> SetNamedAsync<T>(
             this IRedisDatabase service,
           T obj,
-          TimeSpan? expireIn = default,
+            string @namespace = default,
+            TimeSpan? expireIn = default,
           CancellationToken token = default(CancellationToken)) where T : class
         {
+            @namespace ??= typeof(T).Name;
             if (expireIn.HasValue)
             {
-                return await service.AddAsync<T>($"{typeof(T).Name}:{obj.GetUniqueId()}", obj, expireIn.Value);
+                return await service.AddAsync<T>($"{@namespace}:{obj.GetUniqueId()}", obj, expireIn.Value);
             }
-            return await service.AddAsync<T>($"{typeof(T).Name}:{obj.GetUniqueId()}", obj);
+            return await service.AddAsync<T>($"{@namespace}:{obj.GetUniqueId()}", obj);
         }
     }
 }

@@ -9,7 +9,7 @@ using MongoDB.Entities;
 
 namespace Geex.Common.Abstraction
 {
-    public abstract class EntityMapConfig<TEntity> : IEntityMapConfig where TEntity : IEntity
+    public interface IEntityMapConfig<TEntity> : IEntityMapConfig where TEntity : IEntity
     {
         public abstract void Map(BsonClassMap<TEntity> map);
     }

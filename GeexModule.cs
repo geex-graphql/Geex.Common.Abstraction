@@ -75,15 +75,20 @@ namespace Geex.Common.Abstractions
             var entityConfigs = this.GetType().Assembly.ExportedTypes.Where(x => x.IsAssignableTo<IEntityMapConfig>() && !x.IsAbstract);
             foreach (var entityMapConfig in entityConfigs)
             {
-                var entityType = entityMapConfig.BaseType!.GetGenericArguments().First();
+                //一个map可能同时映射多个类型:public class ContractMapConfig : IEntityMapConfig<class1>, IEntityMapConfig<class2>,
+                var interfaces = entityMapConfig.GetInterfaces().Where(x => x.IsAssignableTo<IEntityMapConfig>() && x.IsGenericType);
+                var entityTypes = interfaces.Select(x => x.GetGenericArguments().First());
                 var instance = Activator.CreateInstance(entityMapConfig);
-                var method = entityMapConfig.GetMethods().First(x => x.Name == nameof(EntityMapConfig<IEntity>.Map));
-                var bsonClassMapType = typeof(BsonClassMap<>).MakeGenericType(entityType);
-                var bsonClassMapInstance = Activator.CreateInstance(bsonClassMapType);
-                method.Invoke(instance, new[] { bsonClassMapInstance });
-                if (!BsonClassMap.IsClassMapRegistered(entityType))
+                foreach (var entityType in entityTypes)
                 {
-                    BsonClassMap.RegisterClassMap(bsonClassMapInstance as BsonClassMap);
+                    var method = entityMapConfig.GetMethods().First(x => x.Name == nameof(IEntityMapConfig<IEntity>.Map) && x.GetParameters().First().ParameterType.GetGenericArguments()[0] == entityType);
+                    var bsonClassMapType = typeof(BsonClassMap<>).MakeGenericType(entityType);
+                    var bsonClassMapInstance = Activator.CreateInstance(bsonClassMapType);
+                    method.Invoke(instance, new[] { bsonClassMapInstance });
+                    if (!BsonClassMap.IsClassMapRegistered(entityType))
+                    {
+                        BsonClassMap.RegisterClassMap(bsonClassMapInstance as BsonClassMap);
+                    }
                 }
             }
         }
