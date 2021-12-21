@@ -108,21 +108,25 @@ namespace Geex.Common
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            var app = context.GetApplicationBuilder();
             var _env = context.GetEnvironment();
-            app.UseCors();
-            app.UseRouting();
-
-            if (_env.IsDevelopment())
+            if (!_env.IsUnitTest())
             {
-                app.UseDeveloperExceptionPage();
+                var app = context.GetApplicationBuilder();
+
+                app.UseCors();
+                app.UseRouting();
+
+                if (_env.IsDevelopment())
+                {
+                    app.UseDeveloperExceptionPage();
+                }
+                app.UseCookiePolicy(new CookiePolicyOptions
+                {
+                    MinimumSameSitePolicy = SameSiteMode.Strict,
+                });
+
+                app.UseHealthChecks("/health-check");
             }
-            app.UseCookiePolicy(new CookiePolicyOptions
-            {
-                MinimumSameSitePolicy = SameSiteMode.Strict,
-            });
-
-            app.UseHealthChecks("/health-check");
             DbContext.RegisterDataFiltersForAll(context.ServiceProvider.GetServices<IDataFilter>().ToArray());
             base.OnApplicationInitialization(context);
         }

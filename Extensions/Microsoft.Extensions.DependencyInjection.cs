@@ -43,6 +43,7 @@ using Microsoft.Extensions.Logging;
 
 using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using MongoDB.Entities;
 
 using Volo.Abp.Modularity;
@@ -59,6 +60,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var commonModuleOptions = builder.GetSingletonInstance<GeexCoreModuleOptions>();
             var mongoUrl = new MongoUrl(commonModuleOptions.ConnectionString) { };
             var mongoSettings = MongoClientSettings.FromUrl(mongoUrl);
+            //mongoSettings.LinqProvider = LinqProvider.V3;
             mongoSettings.ApplicationName = commonModuleOptions.AppName;
             DB.InitAsync(mongoUrl.DatabaseName ?? commonModuleOptions.AppName, mongoSettings).Wait();
             //builder.AddScoped(x => new DbContext(transactional: true));
