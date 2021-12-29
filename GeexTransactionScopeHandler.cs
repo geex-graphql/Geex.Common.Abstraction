@@ -12,6 +12,7 @@ using HotChocolate.Execution.Processing;
 using MediatR;
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 using MongoDB.Entities;
 
@@ -77,23 +78,33 @@ namespace Geex.Common
 
     public class WrapperUnitOfWork : IUnitOfWork
     {
-        private readonly DbContext _dbContext;
+        public DbContext DbContext { get; }
+        private ILogger<IUnitOfWork> _logger;
 
-        public WrapperUnitOfWork(DbContext dbContext)
+        public WrapperUnitOfWork(DbContext dbContext, ILogger<IUnitOfWork> logger)
         {
-            _dbContext = dbContext;
+            DbContext = dbContext;
+            _logger = logger;
         }
 
         public async Task CommitAsync(CancellationToken? cancellationToken = default)
         {
             //this.taskSource = new TaskCompletionSource(_task.Invoke());
-            await this._dbContext.CommitAsync(cancellationToken ?? CancellationToken.None);
+            try
+            {
+                await this.DbContext.CommitAsync(cancellationToken ?? CancellationToken.None);
+            }
+            catch (Exception e)
+            {
+                _logger.LogException(e);
+                throw;
+            }
         }
 
         /// <summary>Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.</summary>
         public void Dispose()
         {
-            //this._dbContext.Dispose();
+            this.DbContext.Dispose();
         }
     }
 }

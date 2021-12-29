@@ -15,24 +15,24 @@ namespace Geex.Common.Abstraction.Auditing
     }
     public interface IHasAuditMutation<T> : IHasAuditMutation
     {
-        async Task<bool> SubmitAsync([Service] IMediator mediator, string[] ids, string? remark)
+        async Task<bool> Submit([Service] IMediator mediator, string[] ids, string? remark)
         {
             await mediator.Send(new SubmitRequest<T>(remark, ids));
             return true;
         }
 
-        async Task<bool> AuditAsync([Service] IMediator mediator, string[] ids, string? remark)
+        async Task<bool> Audit([Service] IMediator mediator, string[] ids, string? remark)
         {
             await mediator.Send(new AuditRequest<T>(remark, ids));
             return true;
         }
-        async Task<bool> UnsubmitAsync([Service] IMediator mediator, string[] ids, string? remark)
+        async Task<bool> UnSubmit([Service] IMediator mediator, string[] ids, string? remark)
         {
             await mediator.Send(new UnsubmitRequest<T>(remark, ids));
             return true;
         }
 
-        async Task<bool> UnauditAsync([Service] IMediator mediator, string[] ids, string? remark)
+        async Task<bool> UnAudit([Service] IMediator mediator, string[] ids, string? remark)
         {
             await mediator.Send(new UnauditRequest<T>(remark, ids));
             return true;

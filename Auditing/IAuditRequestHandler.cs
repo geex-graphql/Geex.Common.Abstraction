@@ -33,7 +33,7 @@ namespace Geex.Common.Abstraction.Auditing
                 {
                     DbContext.Attach(entity);
                 }
-                await entity.SubmitAsync<TInterface>(request.Remark);
+                await entity.Submit<TInterface>(request.Remark);
             }
             return Unit.Value;
         }
@@ -52,7 +52,7 @@ namespace Geex.Common.Abstraction.Auditing
                     DbContext.Attach(entity);
                 }
 
-                await entity.AuditAsync<TInterface>(request.Remark);
+                await entity.Audit<TInterface>(request.Remark);
             }
 
             return Unit.Value;
@@ -71,7 +71,7 @@ namespace Geex.Common.Abstraction.Auditing
                 {
                     DbContext.Attach(entity);
                 }
-                await entity.UnsubmitAsync<TInterface>(request.Remark);
+                await entity.UnSubmit<TInterface>(request.Remark);
             }
             return Unit.Value;
         }
@@ -90,7 +90,7 @@ namespace Geex.Common.Abstraction.Auditing
                     DbContext.Attach(entity);
                 }
 
-                await entity.UnauditAsync<TInterface>(request.Remark);
+                await entity.UnAudit<TInterface>(request.Remark);
             }
 
             return Unit.Value;

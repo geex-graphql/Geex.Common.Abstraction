@@ -174,11 +174,11 @@ namespace HotChocolate.Types
             var propertyList = typeof(T).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
             foreach (var item in propertyList)
             {
-                var policy = $"{prefix}_{item.Name.ToCamelCase().Singularize()}";
+                var policy = $"{prefix}_{item.Name.ToCamelCase()}";
                 if (AppPermission.List.Any(x => x.Value == policy) && AppPermission.List.Any(x => x.Value == policy))
                 {
                     @this.Field(item).Authorize(policy);
-                    Console.WriteLine($@"{policy}");
+                    Console.WriteLine($@"成功匹配权限规则:{policy} for {item.DeclaringType.Name}.{item.Name}");
                 }
             }
 
@@ -187,13 +187,16 @@ namespace HotChocolate.Types
             {
                 var auditMutationType = typeof(T).GetInterfaces().First(x => x.Name.StartsWith(nameof(IHasAuditMutation) + "`1"));
                 var auditPropertyList = auditMutationType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+                var entityType = auditMutationType.GenericTypeArguments[0];
                 foreach (var item in auditPropertyList)
                 {
-                    var policy = $"{prefix}_{item.Name.ToCamelCase()}";
+                    var policy = $"{prefix}_{item.Name.ToCamelCase()}{entityType.Name.RemovePreFix("I")}";
+
                     if (AppPermission.List.Any(x => x.Value == policy) && AppPermission.List.Any(x => x.Value == policy))
                     {
-                        @this.Field(item).Authorize(policy);
-                        Console.WriteLine($@"{policy}");
+                        // gql版本限制, 重写resolve的字段需要重新指定类型
+                        @this.Field(policy.Split('_').Last()).Type<BooleanType>().Authorize(policy);
+                        Console.WriteLine($@"成功匹配权限规则:{policy} for {item.DeclaringType.Name}.{item.Name}");
                     }
                 }
             }
@@ -228,7 +231,7 @@ namespace HotChocolate.Types
             if (AppPermission.List.Any(x => x.Value == policy) && AppPermission.List.Any(x => x.Value == policy))
             {
                 fieldDescriptor = fieldDescriptor.Authorize(policy);
-                Console.WriteLine($@"{policy}");
+                Console.WriteLine($@"成功匹配权限规则:{policy} for {propertyOrMethod.DeclaringType.Name}.{propertyOrMethod.Name}");
             }
 
             return fieldDescriptor;

@@ -11,9 +11,9 @@ namespace Geex.Common.Abstraction.Storage
 {
     public abstract class Entity : MongoDB.Entities.Entity, IModifiedOn, IValidatableObject
     {
-        protected GeexDbContext DbContext
+        protected DbContext DbContext
         {
-            get => base.DbContext as GeexDbContext;
+            get => base.DbContext as DbContext;
             set => base.DbContext = value;
         }
         public DateTimeOffset ModifiedOn { get; set; }
@@ -22,7 +22,7 @@ namespace Geex.Common.Abstraction.Storage
         {
             foreach (var @event in events)
             {
-                this.DbContext.DomainEvents.Enqueue(@event);
+                (this.DbContext as GeexDbContext)?.DomainEvents.Enqueue(@event);
             }
         }
 

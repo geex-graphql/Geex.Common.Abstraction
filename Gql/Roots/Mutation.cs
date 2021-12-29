@@ -31,11 +31,11 @@ namespace Geex.Common.Gql.Roots
             {
                 var mutationType = this.GetType().GetInterface("IHasAuditMutation`1");
                 var entityType = mutationType.GenericTypeArguments[0];
-
-                var submit = mutationType.GetMethod(nameof(IHasAuditMutation<IAuditEntity>.SubmitAsync));
-                var audit = mutationType.GetMethod(nameof(IHasAuditMutation<IAuditEntity>.AuditAsync));
-                var unsubmit = mutationType.GetMethod(nameof(IHasAuditMutation<IAuditEntity>.UnsubmitAsync));
-                var unaudit = mutationType.GetMethod(nameof(IHasAuditMutation<IAuditEntity>.UnauditAsync));
+                var name = entityType.Name;
+                var submit = mutationType.GetMethod(nameof(IHasAuditMutation<IAuditEntity>.Submit));
+                var audit = mutationType.GetMethod(nameof(IHasAuditMutation<IAuditEntity>.Audit));
+                var unsubmit = mutationType.GetMethod(nameof(IHasAuditMutation<IAuditEntity>.UnSubmit));
+                var unaudit = mutationType.GetMethod(nameof(IHasAuditMutation<IAuditEntity>.UnAudit));
                 var submitFieldDescriptor = descriptor.Field("submit" + entityType.Name.RemovePreFix("I"))
                     .Type<BooleanType>()
                     .Argument("ids", argumentDescriptor => argumentDescriptor.Type(typeof(string[])))

@@ -35,14 +35,17 @@ using ImpromptuInterface;
 using MediatR;
 
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.Core.Events;
 using MongoDB.Driver.Linq;
 using MongoDB.Entities;
 
@@ -61,12 +64,28 @@ namespace Microsoft.Extensions.DependencyInjection
             var mongoUrl = new MongoUrl(commonModuleOptions.ConnectionString) { };
             var mongoSettings = MongoClientSettings.FromUrl(mongoUrl);
             //mongoSettings.LinqProvider = LinqProvider.V3;
+            mongoSettings.ClusterConfigurator = cb =>
+            {
+                if (commonModuleOptions.EnableDataLogging)
+                {
+                    ILogger<IMongoDatabase> logger = default;
+                    cb.Subscribe<CommandStartedEvent>(e =>
+                    {
+                        logger ??= builder.GetServiceProviderOrNull()?.GetService<ILogger<IMongoDatabase>>();
+                        logger?.LogInformation($"MongoDbCommandStartedEvent: {e.CommandName} - {e.Command.ToJson()}");
+                    });
+                    cb.Subscribe<CommandSucceededEvent>(e =>
+                    {
+                        logger?.LogInformation($"MongoDbCommandStartedEvent: {e.CommandName} success in {e.Duration.TotalMilliseconds}ms. Result: {e.Reply.ToJson()}");
+                    });
+                }
+            };
             mongoSettings.ApplicationName = commonModuleOptions.AppName;
             DB.InitAsync(mongoUrl.DatabaseName ?? commonModuleOptions.AppName, mongoSettings).Wait();
             //builder.AddScoped(x => new DbContext(transactional: true));
-            builder.AddScoped<IUnitOfWork>(x => new WrapperUnitOfWork(x.GetService<DbContext>()));
-            builder.AddScoped(x => new GeexDbContext(x, transactional: true));
-            builder.AddScoped<DbContext>(x => x.GetService<GeexDbContext>());
+            builder.AddScoped<IUnitOfWork>(x => new WrapperUnitOfWork(new GeexDbContext(x, transactional: true), x.GetService<ILogger<IUnitOfWork>>()));
+            // 直接从当前uow提取
+            builder.AddScoped<DbContext>(x => (x.GetService<IUnitOfWork>() as WrapperUnitOfWork)!.DbContext);
             return builder;
         }
 

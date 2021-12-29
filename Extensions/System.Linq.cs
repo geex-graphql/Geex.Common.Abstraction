@@ -128,55 +128,5 @@ namespace System.Linq
 
             return data;
         }
-
-        public static Expression<Func<T, bool>> CastParamType<T>(this LambdaExpression originExpression)
-        {
-            //parameter that will be used in generated expression
-            var param = Expression.Parameter(typeof(T));
-            //visiting body of original expression that gives us body of the new expression
-            var body = new TypeCastVisitor<T>(param).Visit((originExpression.Body));
-            //generating lambda expression form body and parameter
-            //notice that this is what you need to invoke the Method_2
-            Expression<Func<T, bool>> lambda = Expression.Lambda<Func<T, bool>>(body, param);
-            return lambda;
-        }
-    }
-
-    class TypeCastVisitor<T> : ExpressionVisitor
-    {
-        ParameterExpression _parameter;
-
-        //there must be only one instance of parameter expression for each parameter
-        //there is one so one passed here
-        public TypeCastVisitor(ParameterExpression parameter)
-        {
-            _parameter = parameter;
-        }
-
-        //this method replaces original parameter with given in constructor
-        protected override Expression VisitParameter(ParameterExpression node)
-        {
-            return _parameter;
-        }
-
-        //this one is required because PersonData does not implement IPerson and it finds
-        //property in PersonData with the same name as the one referenced in expression
-        //and declared on IPerson
-        protected override Expression VisitMember(MemberExpression node)
-        {
-            //only properties are allowed if you use fields then you need to extend
-            // this method to handle them
-            if (node.Member.MemberType != System.Reflection.MemberTypes.Property)
-                return node;
-
-            //name of a member referenced in original expression in your
-            //sample Id in mine Prop
-            var memberName = node.Member.Name;
-            //find property on type T (=PersonData) by name
-            var otherMember = typeof(T).GetProperty(memberName);
-            //visit left side of this expression p.Id this would be p
-            var inner = Visit(node.Expression);
-            return Expression.Property(inner, otherMember);
-        }
     }
 }

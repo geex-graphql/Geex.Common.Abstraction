@@ -7,6 +7,8 @@ using System.Security.Claims;
 using System.Security.Principal;
 using System.Text.Json;
 
+using Castle.Core.Internal;
+
 using Geex.Common.Abstractions.Enumerations;
 
 using Volo.Abp;
@@ -31,13 +33,10 @@ namespace System.Security.Claims
         public static string[]? FindOrgCodes(this ClaimsPrincipal principal)
         {
             Check.NotNull(principal, nameof(principal));
-            IEnumerable<Claim> claims = principal.Claims;
-            Claim? claim = claims != null
-                ? claims.FirstOrDefault((Func<Claim, bool>)(c => c.Type == GeexClaimType.Org))
-                : null;
-            if (claim == null || claim.Value.IsNullOrWhiteSpace())
+            IEnumerable<Claim> claims = principal.Claims.Where((Func<Claim, bool>)(c => c.Type == GeexClaimType.Org));
+            if (claims.IsNullOrEmpty())
                 return Array.Empty<string>();
-            return claim?.Value?.ToObject<string[]>();
+            return claims.Select(x => x.Value).ToArray();
         }
 
         public static string? FindUserId(this IIdentity identity)
@@ -154,17 +153,25 @@ namespace System.Security.Claims
             //Claim claim2 = claim1;
             //return claim2 == null || claim2.Value.IsNullOrWhiteSpace() ? new Guid?() : Guid.Parse(claim2.Value);
         }
-
+        /// <summary>
+        /// 追加claim, 类型为array时会合并数组
+        /// </summary>
+        /// <param name="claimsIdentity"></param>
+        /// <param name="claims"></param>
         public static void AppendClaims(this ClaimsIdentity claimsIdentity, params Claim[] claims)
         {
             AppendClaims(claimsIdentity, claims.AsEnumerable());
         }
-
+        /// <summary>
+        /// 追加claim, 类型为array时会合并数组
+        /// </summary>
+        /// <param name="claimsIdentity"></param>
+        /// <param name="claims"></param>
         public static void AppendClaims(this ClaimsIdentity claimsIdentity, IEnumerable<Claim> claims)
         {
             foreach (var claim in claims)
             {
-                if (!claimsIdentity.HasClaim(claim.Type, claim.Value))
+                if (claim.ValueType == "array" || !claimsIdentity.HasClaim(claim.Type, claim.Value))
                 {
                     claimsIdentity.AddClaim(claim);
                 }

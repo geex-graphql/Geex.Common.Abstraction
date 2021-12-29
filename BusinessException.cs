@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using Microsoft.Extensions.Logging;
 
@@ -8,7 +9,8 @@ namespace Geex.Common.Abstractions
     {
         public LogLevel LogLevel { get; }
         public string LogMessage { get; }
-        public BusinessException(GeexExceptionType exceptionType, Exception? innerException = default, string? message = default) : base(message, innerException)
+        public BusinessException(GeexExceptionType exceptionType, Exception? innerException = default,
+            string? message = default) : base(message, innerException)
         {
             ExceptionName = exceptionType.Name;
             ExceptionCode = exceptionType.Value;

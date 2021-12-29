@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -13,6 +14,7 @@ using Geex.Common.Abstractions;
 using MediatR;
 
 using MongoDB.Entities;
+using MongoDB.Entities.Utilities;
 
 namespace Geex.Common.Abstraction.Entities
 {
@@ -20,7 +22,7 @@ namespace Geex.Common.Abstraction.Entities
         IRequestHandler<QueryInput<TInterface>, IQueryable<TInterface>>
         where TInterface : IEntity where TEntity : TInterface
     {
-        public GeexDbContext DbContext { get; }
+        public DbContext DbContext { get; }
 
         async Task<IQueryable<TInterface>> IRequestHandler<QueryInput<TInterface>, IQueryable<TInterface>>.Handle(QueryInput<TInterface> request, CancellationToken cancellationToken)
         {

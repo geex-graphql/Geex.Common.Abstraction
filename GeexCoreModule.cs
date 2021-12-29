@@ -34,6 +34,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.WebSockets;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -102,6 +103,11 @@ namespace Geex.Common
             context.Services.AddTransient(typeof(LazyFactory<>));
             context.Services.AddTransient<ClaimsPrincipal>(x =>
             x.GetService<IHttpContextAccessor>()?.HttpContext?.User);
+            context.Services.AddResponseCompression(x =>
+            {
+                x.EnableForHttps = true;
+                x.Providers.Add<GzipCompressionProvider>();
+            });
 
             base.ConfigureServices(context);
         }
@@ -126,6 +132,7 @@ namespace Geex.Common
                 });
 
                 app.UseHealthChecks("/health-check");
+                app.UseResponseCompression();
             }
             DbContext.RegisterDataFiltersForAll(context.ServiceProvider.GetServices<IDataFilter>().ToArray());
             base.OnApplicationInitialization(context);

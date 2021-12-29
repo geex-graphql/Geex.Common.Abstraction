@@ -31,5 +31,9 @@ namespace Geex.Common.Abstraction
         /// 分页获取数据最多数量
         /// </summary>
         public int? MaxPageSize { get; set; } = 1000;
+        /// <summary>
+        /// 启用数据库命令语句日志, !极度影响性能
+        /// </summary>
+        public bool EnableDataLogging { get; set; } = false;
     }
 }

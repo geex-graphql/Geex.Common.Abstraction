@@ -25,7 +25,7 @@ namespace Geex.Common.Abstraction.Auditing
         /// </summary>
         public string AuditRemark { get; set; }
 
-        async Task SubmitAsync<TEntity>(string? remark = default)
+        async Task Submit<TEntity>(string? remark = default)
         {
             if (this.Submittable)
             {
@@ -39,7 +39,7 @@ namespace Geex.Common.Abstraction.Auditing
             }
         }
 
-        async Task AuditAsync<TEntity>(string? remark = default)
+        async Task Audit<TEntity>(string? remark = default)
         {
             if (this.AuditStatus == AuditStatus.Submitted)
             {
@@ -53,7 +53,7 @@ namespace Geex.Common.Abstraction.Auditing
             }
         }
 
-        async Task UnsubmitAsync<TEntity>(string? remark = default)
+        async Task UnSubmit<TEntity>(string? remark = default)
         {
             if (this.AuditStatus == AuditStatus.Submitted)
             {
@@ -61,23 +61,19 @@ namespace Geex.Common.Abstraction.Auditing
                 this.AuditRemark = remark;
                 (this as Entity)?.AddDomainEvent(new EntityUnsubmittedNotification<TEntity>(this));
             }
-            else
+            else if(this.AuditStatus == AuditStatus.Audited)
             {
-                throw new BusinessException(GeexExceptionType.ValidationFailed, message: "不满足取消上报条件.");
+                throw new BusinessException(GeexExceptionType.ValidationFailed, message: "已审核，无法取消上报.");
             }
         }
 
-        async Task UnauditAsync<TEntity>(string? remark = default)
+        async Task UnAudit<TEntity>(string? remark = default)
         {
             if (this.AuditStatus == AuditStatus.Audited)
             {
                 this.AuditStatus ^= AuditStatus.Audited;
                 this.AuditRemark = remark;
                 (this as Entity)?.AddDomainEvent(new EntityUnauditedNotification<TEntity>(this));
-            }
-            else
-            {
-                throw new BusinessException(GeexExceptionType.ValidationFailed, message: "不满足取消审批条件.");
             }
         }
 
