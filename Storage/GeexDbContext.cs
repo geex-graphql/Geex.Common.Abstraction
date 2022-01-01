@@ -57,13 +57,9 @@ namespace Geex.Common.Abstraction.Storage
         }
         public Queue<INotification> DomainEvents { get; } = new Queue<INotification>();
 
-        /// <summary>
-        /// Commits a transaction to MongoDB
-        /// </summary>
-        /// <param name="cancellation">An optional cancellation token</param>
-        public override async Task CommitAsync(CancellationToken cancellation = default)
+        /// <inheritdoc />
+        public override async Task<int> SaveChanges(CancellationToken cancellation = default)
         {
-
             var mediator = ServiceProvider.GetService<IMediator>();
             if (this.DomainEvents.Any())
             {
@@ -83,8 +79,7 @@ namespace Geex.Common.Abstraction.Storage
                         string.Join("\\\n", validateResult.Select(x => x.ErrorMessage)));
                 }
             }
-
-            await base.CommitAsync(cancellation);
+            return await base.SaveChanges(cancellation);
         }
 
         public override IEnumerable<Assembly> FindMigrationAssemblies(Type targetType)
