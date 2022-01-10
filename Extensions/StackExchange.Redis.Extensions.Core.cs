@@ -91,10 +91,11 @@ namespace StackExchange.Redis.Extensions.Core
             return result;
         }
 
-        public static async Task<bool> RemoveNamedAsync<T>(this IRedisDatabase service, string key, string @namespace = default)
+        public static async Task<bool> RemoveNamedAsync<T>(this IRedisDatabase service, string key,
+            string @namespace = default, CommandFlags command = CommandFlags.None)
         {
             @namespace ??= typeof(T).Name;
-            return await service.RemoveAsync($"{@namespace}:{key}");
+            return await service.RemoveAsync($"{@namespace}:{key}", command);
         }
 
         public static async Task<bool> RemoveAllNamedAsync<T>(this IRedisDatabase service, string @namespace = default)

@@ -74,6 +74,7 @@ namespace Geex.Common
                 .ModifyRequestOptions(options =>
                {
                    options.IncludeExceptionDetails = moduleOptions.IncludeExceptionDetails;
+                   options.ExecutionTimeout = TimeSpan.FromSeconds(300);
                })
                 .SetPagingOptions(new PagingOptions()
                 {

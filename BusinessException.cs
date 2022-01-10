@@ -49,6 +49,10 @@ namespace Geex.Common.Abstractions
         /// </summary>
         public static GeexExceptionType NotFound { get; } = new(nameof(NotFound), nameof(NotFound), nameof(NotFound), LogLevel.Warning);
         /// <summary>
+        /// external service error
+        /// </summary>
+        public static GeexExceptionType ExternalError { get; } = new(nameof(ExternalError), nameof(ExternalError), nameof(ExternalError), LogLevel.Warning);
+        /// <summary>
         /// Unknown exception
         /// </summary>
         public static GeexExceptionType Unknown { get; } = new(nameof(Unknown), nameof(Unknown), nameof(Unknown), LogLevel.Error);

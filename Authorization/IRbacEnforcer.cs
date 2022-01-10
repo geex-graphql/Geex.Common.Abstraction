@@ -35,5 +35,6 @@ namespace Geex.Common.Abstraction.Authorization
         public Task SetRolesForUser(string userId, List<string> roles);
 
         public bool SetUserGroupPolicy(string sub, IEnumerable<string> sub_groups);
+        public Task<bool> AddRolesForUserAsync(string user, IEnumerable<string> role, string domain = null);
     }
 }
