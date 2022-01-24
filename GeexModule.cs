@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 using Geex.Common.Abstraction;
 
+using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Voyager;
 using HotChocolate.Execution.Configuration;
 
 using MediatR;
@@ -13,10 +16,12 @@ using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.WebSockets;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 using MongoDB.Bson.Serialization;
 using MongoDB.Entities;
@@ -66,6 +71,7 @@ namespace Geex.Common.Abstractions
             Configuration.GetSection(type.Name).Bind(options);
             this.ServiceConfigurationContext.Services.TryAdd(new ServiceDescriptor(type, options));
             this.ServiceConfigurationContext.Services.TryAdd(new ServiceDescriptor(typeof(IGeexModuleOption<TModule>), options));
+            //this.ServiceConfigurationContext.Services.GetRequiredServiceLazy<ILogger<GeexModule>>().Value.LogInformation($"Module loaded with options:{Environment.NewLine}{options.ToJson()}");
         }
 
         protected virtual IGeexModuleOption<TModule> ModuleOptions => this.ServiceConfigurationContext.Services.GetSingletonInstance<IGeexModuleOption<TModule>>();
@@ -164,17 +170,30 @@ namespace Geex.Common.Abstractions
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
+            var app = context.GetApplicationBuilder();
+            //var _env = context.GetEnvironment();
+            //var _configuration = context.GetConfiguration();
+            app.UseWebSockets();
+            base.OnApplicationInitialization(context);
+        }
+
+        /// <inheritdoc />
+        public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
+        {
             var coreModuleOptions = context.ServiceProvider.GetService<GeexCoreModuleOptions>();
             if (coreModuleOptions.AutoMigration)
             {
                 context.ServiceProvider.GetService<DbContext>().MigrateAsync<T>().Wait();
             }
+            base.OnPostApplicationInitialization(context);
             var app = context.GetApplicationBuilder();
-            var _env = context.GetEnvironment();
-            var _configuration = context.GetConfiguration();
-
-            base.OnApplicationInitialization(context);
-            app.UseGeexGraphQL();
+            app.UseEndpoints(endpoints =>
+                {
+                    endpoints.MapGraphQL();
+                });
+            app.UseVoyager("/graphql", "/voyager");
+            app.UsePlayground("/graphql", "/playground");
+            base.OnPostApplicationInitialization(context);
         }
     }
 }

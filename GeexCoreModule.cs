@@ -122,7 +122,6 @@ namespace Geex.Common
 
                 app.UseCors();
                 app.UseRouting();
-
                 if (_env.IsDevelopment())
                 {
                     app.UseDeveloperExceptionPage();
@@ -132,11 +131,26 @@ namespace Geex.Common
                     MinimumSameSitePolicy = SameSiteMode.Strict,
                 });
 
-                app.UseHealthChecks("/health-check");
                 app.UseResponseCompression();
+                DbContext.RegisterDataFiltersForAll(context.ServiceProvider.GetServices<IDataFilter>().ToArray());
+                base.OnApplicationInitialization(context);
+                return;
             }
             DbContext.RegisterDataFiltersForAll(context.ServiceProvider.GetServices<IDataFilter>().ToArray());
             base.OnApplicationInitialization(context);
+        }
+
+        /// <inheritdoc />
+        public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
+        {
+            var _env = context.GetEnvironment();
+            if (!_env.IsUnitTest())
+            {
+                var app = context.GetApplicationBuilder();
+                app.UseHealthChecks("/health-check");
+            }
+            
+            base.OnPostApplicationInitialization(context);
         }
     }
 }

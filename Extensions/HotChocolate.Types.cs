@@ -126,7 +126,9 @@ namespace HotChocolate.Types
                     x.Field(y => y.AuditStatus);
                     x.Field(y => y.Submittable);
                 })
-                .BindRuntimeType<ObjectId, ObjectIdType>();
+                .BindRuntimeType<ObjectId, ObjectIdType>()
+                .BindRuntimeType<dynamic, AnyType>()
+                .BindRuntimeType<object, AnyType>();
         }
 
 

@@ -89,17 +89,6 @@ namespace Microsoft.Extensions.DependencyInjection
             return builder;
         }
 
-        public static void UseGeexGraphQL(this IApplicationBuilder app)
-        {
-            app.UseWebSockets();
-            app.UseEndpoints(endpoints =>
-                {
-                    endpoints.MapGraphQL();
-                });
-            app.UseVoyager("/graphql", "/voyager");
-            app.UsePlayground("/graphql", "/playground");
-        }
-
         public static IServiceCollection AddHttpResultSerializer<T>(
       this IServiceCollection services, Func<IServiceProvider, T> instance)
       where T : class, IHttpResultSerializer
