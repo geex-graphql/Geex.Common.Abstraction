@@ -19,8 +19,7 @@ namespace Geex.Common.Abstraction.Bson
 
     public class EnumerationSerializer<TEnum, TValue> :
         ClassSerializerBase<TEnum>,
-        IRepresentationConfigurable
-        where TEnum : Enumeration<TEnum, TValue> where TValue : IEquatable<TValue>, IComparable<TValue>
+        IRepresentationConfigurable, IEnumerationSerializer where TEnum : Enumeration<TEnum, TValue> where TValue : IEquatable<TValue>, IComparable<TValue>
     {
         private readonly BsonType _representation = BsonType.String;
         private readonly TypeCode _underlyingTypeCode;

@@ -84,7 +84,7 @@ namespace Geex.Common
           IFilterVisitorContext<T> context)
         {
             IFilterInputType type = context.Types.OfType<IFilterInputType>().First<IFilterInputType>();
-            return ErrorBuilder.New().SetMessage("CreateNonNullError", (object)context.Operations.Peek().Name, (object)type.Visualize()).AddLocation((ISyntaxNode)value).SetCode("HC0026").SetExtension("expectedType", (object)new NonNullType((IType)field.Type).Visualize()).SetExtension("filterType", (object)type.Visualize()).Build();
+            return ErrorBuilder.New().SetMessage("CreateNonNullError", context.Operations.Peek().Name, type.Print()).AddLocation((ISyntaxNode)value).SetCode("HC0026").SetExtension("expectedType", new NonNullType((IType)field.Type).Print()).SetExtension("filterType", type.Print()).Build();
         }
     }
 }

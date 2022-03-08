@@ -43,6 +43,7 @@ using Microsoft.Extensions.Options;
 
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Entities;
 using MongoDB.Entities.Interceptors;
 
@@ -56,6 +57,13 @@ namespace Geex.Common
 {
     public class GeexCoreModule : GeexModule<GeexCoreModule, GeexCoreModuleOptions>
     {
+        static GeexCoreModule()
+        {
+            ConventionRegistry.Register("enumeration", new ConventionPack()
+            {
+                new EnumerationRepresentationConvention()
+            }, _ => true);
+        }
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var moduleOptions = this.ModuleOptions;
@@ -109,8 +117,15 @@ namespace Geex.Common
                 x.EnableForHttps = true;
                 x.Providers.Add<GzipCompressionProvider>();
             });
-
             base.ConfigureServices(context);
+        }
+
+        /// <inheritdoc />
+        public override void PostConfigureServices(ServiceConfigurationContext context)
+        {
+            context.Services.AddDataFilters();
+            context.Services.AddSaveInterceptors();
+            base.PostConfigureServices(context);
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -132,11 +147,8 @@ namespace Geex.Common
                 });
 
                 app.UseResponseCompression();
-                DbContext.RegisterDataFiltersForAll(context.ServiceProvider.GetServices<IDataFilter>().ToArray());
-                base.OnApplicationInitialization(context);
-                return;
             }
-            DbContext.RegisterDataFiltersForAll(context.ServiceProvider.GetServices<IDataFilter>().ToArray());
+
             base.OnApplicationInitialization(context);
         }
 
@@ -149,7 +161,7 @@ namespace Geex.Common
                 var app = context.GetApplicationBuilder();
                 app.UseHealthChecks("/health-check");
             }
-            
+
             base.OnPostApplicationInitialization(context);
         }
     }

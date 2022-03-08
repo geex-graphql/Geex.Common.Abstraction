@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.Json.Serialization.Converters;
 using System.Text.Unicode;
 
 using Geex.Common.Abstraction.Json;
@@ -66,6 +65,11 @@ namespace System.Text.Json
         public static T? ToObject<T>(this string @this)
         {
             return JsonSerializer.Deserialize<T>(@this, DefaultSerializeSettings);
+        }
+
+        public static object? ToObject(this string @this, Type type)
+        {
+            return JsonSerializer.Deserialize(@this, type, DefaultSerializeSettings);
         }
     }
 

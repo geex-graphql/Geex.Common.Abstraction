@@ -39,6 +39,7 @@ namespace Geex.Common.Abstractions
     public abstract class GeexModule<TModule> : GeexModule where TModule : GeexModule
     {
         public IConfiguration Configuration { get; private set; }
+        public IWebHostEnvironment Env { get; private set; }
 
         public virtual void ConfigureModuleOptions(Action<IGeexModuleOption<TModule>> optionsAction)
         {
@@ -54,6 +55,7 @@ namespace Geex.Common.Abstractions
         public override void PreConfigureServices(ServiceConfigurationContext context)
         {
             Configuration = context.Services.GetConfiguration();
+            Env = context.Services.GetSingletonInstanceOrNull<IWebHostEnvironment>();
             context.Services.Add(new ServiceDescriptor(typeof(GeexModule), this));
             context.Services.Add(new ServiceDescriptor(this.GetType(), this));
             this.InitModuleOptions();

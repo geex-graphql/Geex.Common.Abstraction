@@ -10,6 +10,10 @@ namespace Geex.Common.Abstraction.Gql.Inputs
 {
     public class QueryInput<T> : IRequest<IQueryable<T>>
     {
+        public static QueryInput<T> New(Expression<Func<T, bool>> filter = default)
+        {
+            return new QueryInput<T>(filter);
+        }
         public QueryInput(Expression<Func<T, bool>> filter = default)
         {
             this.Filter = filter;

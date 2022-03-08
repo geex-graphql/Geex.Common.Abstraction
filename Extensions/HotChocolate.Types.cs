@@ -23,6 +23,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 using Humanizer;
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 using MongoDB.Bson;
 using MongoDB.Entities;
@@ -32,7 +33,7 @@ using Entity = Geex.Common.Abstraction.Storage.Entity;
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types
 {
-    public static class Extension
+    public static class HotChocolateTypesExtension
     {
         public static IObjectFieldDescriptor ConfigQuery<TResolver>(
             this IObjectTypeDescriptor<TResolver> @this,
@@ -158,6 +159,7 @@ namespace HotChocolate.Types
             var moduleName = callerDeclaringType.Assembly.GetName().Name.Split(".").ToList().Where(x => !x.IsIn("Gql", "Api", "Core", "Tests")).Last().ToCamelCase();
             var className = callerDeclaringType.Name;
             var prefix = "";
+            var logger = (@this as IHasDescriptorContext)!.Context.Services.GetService<ILogger<IObjectTypeDescriptor<T>>>();
             if (className.Contains("Query"))
             {
                 prefix = $"{moduleName}_query";
@@ -180,7 +182,11 @@ namespace HotChocolate.Types
                 if (AppPermission.List.Any(x => x.Value == policy) && AppPermission.List.Any(x => x.Value == policy))
                 {
                     @this.Field(item).Authorize(policy);
-                    Console.WriteLine($@"成功匹配权限规则:{policy} for {item.DeclaringType.Name}.{item.Name}");
+                    logger.LogInformation($@"成功匹配权限规则:{policy} for {item.DeclaringType.Name}.{item.Name}");
+                }
+                else
+                {
+                    logger.LogWarning($@"跳过匹配权限规则:{item.DeclaringType.Name}.{item.Name}");
                 }
             }
 
@@ -198,7 +204,11 @@ namespace HotChocolate.Types
                     {
                         // gql版本限制, 重写resolve的字段需要重新指定类型
                         @this.Field(policy.Split('_').Last()).Type<BooleanType>().Authorize(policy);
-                        Console.WriteLine($@"成功匹配权限规则:{policy} for {item.DeclaringType.Name}.{item.Name}");
+                        logger.LogInformation($@"成功匹配权限规则:{policy} for {typeof(T).Name}.{item.Name}");
+                    }
+                    else
+                    {
+                        logger.LogWarning($@"跳过匹配权限规则:{typeof(T).Name}.{item.Name}");
                     }
                 }
             }
@@ -229,11 +239,16 @@ namespace HotChocolate.Types
         {
             var prefix = @this.GetAggregateAuthorizePrefix();
             var fieldDescriptor = @this.Field(propertyOrMethod);
+            var logger = (@this as IHasDescriptorContext)!.Context.Services.GetService<ILogger<IObjectTypeDescriptor<T>>>();
             var policy = $"{prefix}_{propertyOrMethod.Name.ToCamelCase()}";
             if (AppPermission.List.Any(x => x.Value == policy) && AppPermission.List.Any(x => x.Value == policy))
             {
                 fieldDescriptor = fieldDescriptor.Authorize(policy);
-                Console.WriteLine($@"成功匹配权限规则:{policy} for {propertyOrMethod.DeclaringType.Name}.{propertyOrMethod.Name}");
+                logger.LogInformation($@"成功匹配权限规则:{policy} for {propertyOrMethod.DeclaringType?.Name}.{propertyOrMethod.Name}");
+            }
+            else
+            {
+                logger.LogDebug($@"跳过匹配权限规则:{propertyOrMethod.DeclaringType?.Name}.{propertyOrMethod.Name}");
             }
 
             return fieldDescriptor;

@@ -20,14 +20,7 @@ namespace System.Security.Claims
     {
         public static string? FindUserId(this ClaimsPrincipal principal)
         {
-            Check.NotNull(principal, nameof(principal));
-            IEnumerable<Claim> claims = principal.Claims;
-            Claim? claim = claims != null
-                ? claims.FirstOrDefault((Func<Claim, bool>)(c => c.Type == GeexClaimType.Sub))
-                : null;
-            if (claim == null || claim.Value.IsNullOrWhiteSpace())
-                return default;
-            return claim?.Value;
+            return principal.Identity?.FindUserId();
         }
 
         public static string[]? FindOrgCodes(this ClaimsPrincipal principal)
@@ -58,38 +51,29 @@ namespace System.Security.Claims
             return claim?.Value;
         }
 
-        public static Guid? FindTenantId(this ClaimsPrincipal principal)
+        public static string? FindTenantCode(this IIdentity identity)
         {
-            throw new NotImplementedException();
-            //Check.NotNull(principal, nameof(principal));
-            //IEnumerable<Claim> claims = principal.Claims;
-            //Claim claim = claims != null
-            //    ? claims.FirstOrDefault((Func<Claim, bool>) (c => c.Type == GeexClaimType.TenantId))
-            //    : null;
-            //return claim == null || claim.Value.IsNullOrWhiteSpace() ? new Guid?() : Guid.Parse(claim.Value);
+            Check.NotNull(identity, nameof(identity));
+            Claim? claim;
+            if (!(identity is ClaimsIdentity claimsIdentity))
+            {
+                claim = null;
+            }
+            else
+            {
+                IEnumerable<Claim> claims = claimsIdentity.Claims;
+                claim = claims != null
+                    ? claims.FirstOrDefault((Func<Claim, bool>)(c => c.Type == GeexClaimType.Tenant))
+                    : null;
+            }
+
+            return claim?.Value;
         }
 
-        public static Guid? FindTenantId(this IIdentity identity)
+        public static string? FindTenantCode(this ClaimsPrincipal principal)
         {
-            throw new NotImplementedException();
-            //Check.NotNull(identity, nameof(identity));
-            //Claim claim1;
-            //if (!(identity is ClaimsIdentity claimsIdentity))
-            //{
-            //    claim1 = null;
-            //}
-            //else
-            //{
-            //    IEnumerable<Claim> claims = claimsIdentity.Claims;
-            //    claim1 = claims != null
-            //        ? claims.FirstOrDefault((Func<Claim, bool>) (c => c.Type == GeexClaimType.TenantId))
-            //        : null;
-            //}
-
-            //Claim claim2 = claim1;
-            //return claim2 == null || claim2.Value.IsNullOrWhiteSpace() ? new Guid?() : Guid.Parse(claim2.Value);
+            return principal.Identity?.FindTenantCode();
         }
-
         public static string FindClientId(this ClaimsPrincipal principal)
         {
             throw new NotImplementedException();

@@ -22,7 +22,7 @@ namespace Geex.Common.Gql.Types
 
         protected override bool TryCreateEnumValue(ITypeCompletionContext context, EnumValueDefinition definition, out IEnumValue? enumValue)
         {
-            definition.Name = definition.Value.ToString();
+            definition.Name = definition.RuntimeValue.ToString();
             var tryCreateEnumValue = base.TryCreateEnumValue(context, definition, out enumValue);
             return tryCreateEnumValue;
         }

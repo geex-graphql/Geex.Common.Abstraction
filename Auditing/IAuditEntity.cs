@@ -24,7 +24,13 @@ namespace Geex.Common.Abstraction.Auditing
         /// 审批操作备注文本
         /// </summary>
         public string AuditRemark { get; set; }
-
+        /// <summary>
+        /// 上报
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="remark"></param>
+        /// <returns></returns>
+        /// <exception cref="BusinessException"></exception>
         async Task Submit<TEntity>(string? remark = default)
         {
             if (this.Submittable)
@@ -38,7 +44,13 @@ namespace Geex.Common.Abstraction.Auditing
                 throw new BusinessException(GeexExceptionType.ValidationFailed, message: "不满足上报条件.");
             }
         }
-
+        /// <summary>
+        /// 审批
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="remark"></param>
+        /// <returns></returns>
+        /// <exception cref="BusinessException"></exception>
         async Task Audit<TEntity>(string? remark = default)
         {
             if (this.AuditStatus == AuditStatus.Submitted)
@@ -52,7 +64,13 @@ namespace Geex.Common.Abstraction.Auditing
                 throw new BusinessException(GeexExceptionType.ValidationFailed, message: "不满足审批条件.");
             }
         }
-
+        /// <summary>
+        /// 取消上报
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="remark"></param>
+        /// <returns></returns>
+        /// <exception cref="BusinessException"></exception>
         async Task UnSubmit<TEntity>(string? remark = default)
         {
             if (this.AuditStatus == AuditStatus.Submitted)
@@ -66,7 +84,12 @@ namespace Geex.Common.Abstraction.Auditing
                 throw new BusinessException(GeexExceptionType.ValidationFailed, message: "已审核，无法取消上报.");
             }
         }
-
+        /// <summary>
+        /// 取消审批
+        /// </summary>
+        /// <typeparam name="TEntity"></typeparam>
+        /// <param name="remark"></param>
+        /// <returns></returns>
         async Task UnAudit<TEntity>(string? remark = default)
         {
             if (this.AuditStatus == AuditStatus.Audited)
@@ -76,7 +99,9 @@ namespace Geex.Common.Abstraction.Auditing
                 (this as Entity)?.AddDomainEvent(new EntityUnauditedNotification<TEntity>(this));
             }
         }
-
+        /// <summary>
+        /// 是否满足提交条件
+        /// </summary>
         bool Submittable { get; }
     }
 }
