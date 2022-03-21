@@ -27,7 +27,7 @@ namespace Geex.Common.Abstraction.Storage
     {
         public GeexDbContext(IServiceProvider serviceProvider = default, string database = default,
             bool transactional = false,
-            ClientSessionOptions options = null) : base(serviceProvider, database, transactional, options)
+            ClientSessionOptions options = null, bool entityTrackingEnabled = true) : base(serviceProvider, database, transactional, options, entityTrackingEnabled)
         {
 
         }

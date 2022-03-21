@@ -83,7 +83,14 @@ namespace Microsoft.Extensions.DependencyInjection
             mongoSettings.ApplicationName = commonModuleOptions.AppName;
             DB.InitAsync(mongoUrl.DatabaseName ?? commonModuleOptions.AppName, mongoSettings).Wait();
             //builder.AddScoped(x => new DbContext(transactional: true));
-            builder.AddScoped<IUnitOfWork>(x => new WrapperUnitOfWork(new GeexDbContext(x, transactional: true), x.GetService<ILogger<IUnitOfWork>>()));
+            builder.AddScoped<IUnitOfWork>(x =>
+            {
+                if (x.TryGetService(typeof(IHttpContextAccessor), out var acce) && (acce as IHttpContextAccessor)?.HttpContext?.Request.Headers.TryGetValue("gqlType", out var gqlType) == true && gqlType == "query")
+                {
+                    return new WrapperUnitOfWork(new GeexDbContext(x, entityTrackingEnabled: false), x.GetService<ILogger<IUnitOfWork>>());
+                }
+                return new WrapperUnitOfWork(new GeexDbContext(x, transactional: true, entityTrackingEnabled: true), x.GetService<ILogger<IUnitOfWork>>());
+            });
             // 直接从当前uow提取
             builder.AddScoped<DbContext>(x => (x.GetService<IUnitOfWork>() as WrapperUnitOfWork)!.DbContext);
             return builder;
