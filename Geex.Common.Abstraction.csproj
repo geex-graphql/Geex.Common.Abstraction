@@ -13,17 +13,17 @@
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.1.0" />
     <PackageReference Include="Autofac.Extras.DynamicProxy" Version="6.0.0" />
     <PackageReference Include="Casbin.NET" Version="1.11.0" />
-    <PackageReference Include="HotChocolate.AspNetCore" Version="12.6.0" />
-    <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="12.6.0" />
-    <PackageReference Include="HotChocolate.AspNetCore.Playground" Version="10.5.5" />
+    <PackageReference Include="HotChocolate.AspNetCore" Version="12.7.0" />
+    <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="12.7.0" />
     <PackageReference Include="HotChocolate.AspNetCore.Voyager" Version="10.5.5" />
-    <PackageReference Include="HotChocolate.Data" Version="12.6.0" />
-    <PackageReference Include="HotChocolate.Language" Version="12.6.0" />
-    <PackageReference Include="HotChocolate.Stitching" Version="12.6.0" />
-    <PackageReference Include="HotChocolate.Stitching.Redis" Version="12.6.0" />
-    <PackageReference Include="HotChocolate.Types.Scalars" Version="12.6.0" />
-    <PackageReference Include="HotChocolate.Types.Scalars.Upload" Version="12.6.0" />
-    <PackageReference Include="HotChocolate.Validation" Version="12.6.0" />
+    <PackageReference Include="HotChocolate.Data" Version="12.7.0" />
+    <PackageReference Include="HotChocolate.Language" Version="12.7.0" />
+    <PackageReference Include="HotChocolate.Stitching" Version="12.7.0" />
+    <PackageReference Include="HotChocolate.Stitching.Redis" Version="12.7.0" />
+    <PackageReference Include="HotChocolate.Subscriptions.InMemory" Version="12.7.0" />
+    <PackageReference Include="HotChocolate.Types.Scalars" Version="12.7.0" />
+    <PackageReference Include="HotChocolate.Types.Scalars.Upload" Version="12.7.0" />
+    <PackageReference Include="HotChocolate.Validation" Version="12.7.0" />
     <PackageReference Include="Humanizer.Core" Version="2.8.26" />
     <PackageReference Include="ImpromptuInterface" Version="7.0.1" />
     <PackageReference Include="MediatR" Version="9.0.0" />
@@ -35,7 +35,7 @@
     <PackageReference Include="StackExchange.Redis.Extensions.Core" Version="7.0.0" />
     <PackageReference Include="StackExchange.Redis.Extensions.System.Text.Json" Version="7.0.0" />
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
-    <PackageReference Include="Volo.Abp.Core" Version="3.3.2" />
+    <PackageReference Include="Volo.Abp.Core" Version="5.2.0" />
   </ItemGroup>
 
   <ItemGroup>

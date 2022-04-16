@@ -129,7 +129,8 @@ namespace HotChocolate.Types
                 })
                 .BindRuntimeType<ObjectId, ObjectIdType>()
                 .BindRuntimeType<dynamic, AnyType>()
-                .BindRuntimeType<object, AnyType>();
+                .BindRuntimeType<object, AnyType>()
+                .BindRuntimeType<Dictionary<string, object>, AnyType>();
         }
 
 
@@ -252,6 +253,15 @@ namespace HotChocolate.Types
             }
 
             return fieldDescriptor;
+        }
+
+        internal static void ConfigExtensionFields<T>(this IObjectTypeDescriptor<T> descriptor) where T : ObjectTypeExtension
+        {
+            descriptor.Field(x => x.Kind).Ignore();
+            descriptor.Field(x => x.Scope).Ignore();
+            descriptor.Field(x => x.Name).Ignore();
+            descriptor.Field(x => x.Description).Ignore();
+            descriptor.Field(x => x.ContextData).Ignore();
         }
     }
 }

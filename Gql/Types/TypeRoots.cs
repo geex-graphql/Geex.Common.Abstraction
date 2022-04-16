@@ -1,32 +1,32 @@
 ﻿using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using Geex.Common.Abstraction;
 using Geex.Common.Abstraction.Auditing;
-using Geex.Common.Abstraction.Gql;
-
+using HotChocolate.Configuration;
+using HotChocolate.Execution;
 using HotChocolate.Types;
-
+using HotChocolate.Types.Descriptors.Definitions;
 using MediatR;
 
-using Microsoft.Extensions.DependencyInjection;
-
-using MongoDB.Entities;
-
-namespace Geex.Common.Gql.Roots
+namespace Geex.Common.Abstraction.Gql.Types
 {
-
-    public abstract class MutationTypeExtension<T> : ObjectTypeExtension<T> where T : ObjectTypeExtension
+    public abstract class Query<T> : ObjectTypeExtension<T> where T : ObjectTypeExtension
+    {
+        protected override void Configure(IObjectTypeDescriptor<T> descriptor)
+        {
+            descriptor.Name(OperationTypeNames.Query);
+            descriptor.ConfigExtensionFields();
+            base.Configure(descriptor);
+        }
+    }
+    public abstract class Mutation<T> : ObjectTypeExtension<T> where T : ObjectTypeExtension
     {
         protected override void Configure(IObjectTypeDescriptor<T> descriptor)
         {
             descriptor.Name(OperationTypeNames.Mutation);
-            descriptor.Field(x => x.Kind).Ignore();
-            descriptor.Field(x => x.Scope).Ignore();
-            descriptor.Field(x => x.Name).Ignore();
-            descriptor.Field(x => x.Description).Ignore();
-            descriptor.Field(x => x.ContextData).Ignore();
+            descriptor.ConfigExtensionFields();
+
             if (typeof(T).IsAssignableTo<IHasAuditMutation>())
             {
                 var mutationType = this.GetType().GetInterface("IHasAuditMutation`1");
@@ -73,7 +73,18 @@ namespace Geex.Common.Gql.Roots
                         return await (unaudit.Invoke(this,
                             new object?[] { context.Service<IMediator>(), context.ArgumentValue<string[]>("ids"), context.ArgumentValue<string>("remark") }) as Task<bool>);
                     });
+                base.Configure(descriptor);
             }
+            base.Configure(descriptor);
+        }
+    }
+    public abstract class Subscription<T> : ObjectTypeExtension<T> where T : ObjectTypeExtension
+    {
+        protected override void Configure(IObjectTypeDescriptor<T> descriptor)
+        {
+            descriptor.Name(OperationTypeNames.Subscription);
+            descriptor.ConfigExtensionFields();
+
             base.Configure(descriptor);
         }
     }

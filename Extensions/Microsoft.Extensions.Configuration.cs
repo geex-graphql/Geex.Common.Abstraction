@@ -13,5 +13,10 @@ namespace Microsoft.Extensions.Configuration
         {
             return configuration.GetValue<string>("App:HostAddress");
         }
+
+        public static TModuleOption GetModuleOptions<TModuleOption>(this IConfiguration configuration)
+        {
+            return configuration.GetSection(typeof(TModuleOption).Name).Get<TModuleOption>();
+        }
     }
 }

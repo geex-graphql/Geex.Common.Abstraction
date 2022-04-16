@@ -12,6 +12,7 @@ using HotChocolate.Data.Filters.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 
 namespace Geex.Common
 {
@@ -24,11 +25,6 @@ namespace Geex.Common
         }
 
         public static Dictionary<int, PropertyInfo> PostFilterFields { get; set; } = new Dictionary<int, PropertyInfo>();
-
-        public override void ConfigureField(NameString argumentName, IObjectFieldDescriptor descriptor)
-        {
-            base.ConfigureField(argumentName, descriptor);
-        }
 
         public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
         {

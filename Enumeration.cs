@@ -64,13 +64,7 @@ namespace Geex.Common.Abstractions
 
         private static IEnumerable<TEnum> GetAllOptions()
         {
-            var entryAssembly = Assembly
-                    .GetEntryAssembly();
-
-            IEnumerable<Type> enumTypes = entryAssembly
-        .GetReferencedAssemblies()
-        .Select(Assembly.Load)
-        .Concat(GeexModule.KnownModuleAssembly)
+            IEnumerable<Type> enumTypes = GeexModule.KnownModuleAssembly
         .Distinct()
         .SelectMany(x => x.DefinedTypes).Where(x => x.IsAssignableTo(typeof(TEnum)) && !x.IsAbstract).Concat(new[] { typeof(TEnum) }).Distinct();
 

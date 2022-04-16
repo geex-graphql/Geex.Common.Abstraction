@@ -6,16 +6,14 @@ using System.Security.Claims;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-using Autofac;
-
 using Geex.Common;
 using Geex.Common.Abstraction;
 using Geex.Common.Abstraction.Auditing;
 using Geex.Common.Abstraction.Gql;
+using Geex.Common.Abstraction.Gql.Types;
 using Geex.Common.Abstraction.Storage;
 using Geex.Common.Abstractions;
 using Geex.Common.Gql;
-using Geex.Common.Gql.Roots;
 using Geex.Common.Gql.Types;
 
 using HotChocolate.AspNetCore;
@@ -104,13 +102,21 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IHttpResultSerializer, T>(instance);
             return services;
         }
-        public static IRequestExecutorBuilder AddModuleTypes<TModule>(this IRequestExecutorBuilder schemaBuilder)
-
-        {
-            return schemaBuilder
-                .AddModuleTypes(typeof(TModule));
-        }
         public static object? GetSingletonInstanceOrNull(this IServiceCollection services, Type type) => services.FirstOrDefault<ServiceDescriptor>((Func<ServiceDescriptor, bool>)(d => d.ServiceType == type))?.ImplementationInstance;
+
+        public static IRequestExecutorBuilder ConfigExtensionTypes(this IRequestExecutorBuilder schemaBuilder)
+        {
+            var rootTypes = schemaBuilder.Services.Where(x => x.ServiceType == typeof(ObjectTypeExtension)).ToList();
+            schemaBuilder.Services.RemoveAll<ObjectTypeExtension>();
+            schemaBuilder.Services.Add(rootTypes.Where(x => x.ImplementationType != null).Select(x => new ServiceDescriptor(x.ImplementationType!, x.ImplementationType!, ServiceLifetime.Scoped)));
+            foreach (var serviceDescriptor in rootTypes)
+            {
+                if (serviceDescriptor.ImplementationType != null)
+                    schemaBuilder.AddTypeExtension(serviceDescriptor.ImplementationType);
+            }
+            return schemaBuilder;
+        }
+
         public static IRequestExecutorBuilder AddModuleTypes(this IRequestExecutorBuilder schemaBuilder, Type gqlModuleType)
         {
             if (GeexModule.KnownModuleAssembly.AddIfNotContains(gqlModuleType.Assembly))
@@ -128,13 +134,19 @@ namespace Microsoft.Extensions.DependencyInjection
                 var objectTypes = exportedTypes.Where(x => !x.IsAbstract && AbpTypeExtensions.IsAssignableTo<IType>(x)).Where(x => !x.IsGenericType || (x.IsGenericType && x.GenericTypeArguments.Any())).ToList();
                 schemaBuilder.AddTypes(objectTypes.ToArray());
 
-                var extensionTypes = exportedTypes.Where(x =>
-                                                         (!x.IsAbstract && AbpTypeExtensions.IsAssignableTo<ObjectTypeExtension>(x))).ToArray();
-                //schemaBuilder.AddTypes(rootTypes);
-                foreach (var extensionType in extensionTypes)
+                var rootTypes = exportedTypes.Where(x => x.IsAssignableTo<ObjectTypeExtension>() && !x.IsAbstract);
+                foreach (var rootType in rootTypes)
                 {
-                    schemaBuilder.AddTypeExtension(extensionType);
-
+                    var baseClasses = rootType.GetBaseClasses(typeof(ObjectTypeExtension));
+                    var type2replace = baseClasses.ElementAtOrDefault(baseClasses.Length - 1);
+                    if (type2replace != null && type2replace.BaseType?.BaseType?.BaseType == typeof(ObjectTypeExtension))
+                    {
+                        schemaBuilder.Services.ReplaceAll(x => x.ServiceType == typeof(ObjectTypeExtension) && x.ImplementationType == type2replace, () => new ServiceDescriptor(typeof(ObjectTypeExtension), rootType, ServiceLifetime.Scoped));
+                    }
+                    else
+                    {
+                        schemaBuilder.Services.AddScoped(typeof(ObjectTypeExtension), rootType);
+                    }
                 }
 
                 var classEnumTypes = exportedTypes.Where(x => !x.IsAbstract && x.IsClassEnum() && x.Name != nameof(Enumeration)).ToList();
@@ -200,10 +212,26 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentNullException(nameof(collection));
             if (descriptor == null)
                 throw new ArgumentNullException(nameof(descriptor));
-            var serviceDescriptors = collection.Where((Func<ServiceDescriptor, bool>)(s => s.ServiceType == descriptor.ServiceType)).ToList();
+            var serviceDescriptors = collection.Where((s => s.ServiceType == descriptor.ServiceType)).ToList();
             if (serviceDescriptors.Any())
                 collection.RemoveAll(serviceDescriptors);
             collection.Add(descriptor);
+            return collection;
+        }
+
+        public static IServiceCollection ReplaceAll(
+      this IServiceCollection collection,
+      Func<ServiceDescriptor, bool> predicate,
+      Func<ServiceDescriptor> itemFactory)
+        {
+            if (collection == null)
+                throw new ArgumentNullException(nameof(collection));
+            if (predicate == null)
+                throw new ArgumentNullException(nameof(predicate));
+            var serviceDescriptors = collection.Where(predicate).ToList();
+            if (serviceDescriptors.Any())
+                collection.RemoveAll(serviceDescriptors);
+            collection.Add(itemFactory());
             return collection;
         }
     }

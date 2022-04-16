@@ -5,6 +5,8 @@
 // Assembly location: C:\Users\lulus\.nuget\packages\volo.abp.aspnetcore\4.2.2\lib\net5.0\Volo.Abp.AspNetCore.dll
 
 using System;
+using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -18,7 +20,7 @@ namespace Volo.Abp.DependencyInjection
 {
     public static class ApplicationInitializationContextExtensions
     {
-        public static void InitializeApplication(this IApplicationBuilder app)
+        public static async Task InitializeApplicationAsync(this IApplicationBuilder app)
         {
             Check.NotNull<IApplicationBuilder>(app, nameof(app));
             app.ApplicationServices.GetRequiredService<ObjectAccessor<IApplicationBuilder>>().Value = app;
@@ -26,7 +28,7 @@ namespace Volo.Abp.DependencyInjection
             IHostApplicationLifetime requiredService = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
             requiredService.ApplicationStopping.Register((Action)(() => application.Shutdown()));
             requiredService.ApplicationStopped.Register((Action)(() => application.Dispose()));
-            application.Initialize(app.ApplicationServices);
+            await application.InitializeAsync(app.ApplicationServices);
         }
         public static IApplicationBuilder GetApplicationBuilder(
           this ApplicationInitializationContext context)

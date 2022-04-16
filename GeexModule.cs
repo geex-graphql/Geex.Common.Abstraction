@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 using Geex.Common.Abstraction;
 
@@ -16,6 +17,7 @@ using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.WebSockets;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -76,70 +78,22 @@ namespace Geex.Common.Abstractions
             //this.ServiceConfigurationContext.Services.GetRequiredServiceLazy<ILogger<GeexModule>>().Value.LogInformation($"Module loaded with options:{Environment.NewLine}{options.ToJson()}");
         }
 
-        protected virtual IGeexModuleOption<TModule> ModuleOptions => this.ServiceConfigurationContext.Services.GetSingletonInstance<IGeexModuleOption<TModule>>();
-
-        public virtual void ConfigureModuleEntityMaps()
+        public virtual void ConfigureModuleEntityMaps(IServiceProvider serviceProvider)
         {
-            var entityConfigs = this.GetType().Assembly.ExportedTypes.Where(x => x.IsAssignableTo<IEntityMapConfig>() && !x.IsAbstract);
-            foreach (var entityMapConfig in entityConfigs)
+            foreach (var entityMapConfig in serviceProvider.GetServices<IEntityMapConfig>())
             {
-                //一个map可能同时映射多个类型:public class ContractMapConfig : IEntityMapConfig<class1>, IEntityMapConfig<class2>,
-                var interfaces = entityMapConfig.GetInterfaces().Where(x => x.IsAssignableTo<IEntityMapConfig>() && x.IsGenericType);
-                var entityTypes = interfaces.Select(x => x.GetGenericArguments().First());
-                var instance = Activator.CreateInstance(entityMapConfig);
-                foreach (var entityType in entityTypes)
-                {
-                    var method = entityMapConfig.GetMethods().First(x => x.Name == nameof(IEntityMapConfig<IEntity>.Map) && x.GetParameters().First().ParameterType.GetGenericArguments()[0] == entityType);
-                    var bsonClassMapType = typeof(BsonClassMap<>).MakeGenericType(entityType);
-                    var bsonClassMapInstance = Activator.CreateInstance(bsonClassMapType);
-                    if (!BsonClassMap.IsClassMapRegistered(entityType))
-                    {
-                        method.Invoke(instance, new[] { bsonClassMapInstance });
-                        BsonClassMap.RegisterClassMap(bsonClassMapInstance as BsonClassMap);
-                    }
-                }
+                entityMapConfig.Map();
             }
         }
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            this.ConfigureModuleEntityMaps();
+            this.SchemaBuilder.AddModuleTypes(this.GetType());
             context.Services.AddMediatR(configuration: configuration =>
             {
             }, typeof(TModule));
             base.ConfigureServices(context);
         }
-
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
-        {
-            foreach (var hasStartupInitialize in context.ServiceProvider.GetServices<IStartupInitializer>())
-            {
-                hasStartupInitialize.Initialize().Wait();
-            }
-            base.OnApplicationInitialization(context);
-        }
-
-        public override void OnApplicationShutdown(ApplicationShutdownContext context)
-        {
-            base.OnApplicationShutdown(context);
-        }
-
-        public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
-        {
-            base.OnPostApplicationInitialization(context);
-        }
-
-        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
-        {
-            base.OnPreApplicationInitialization(context);
-        }
-
-        public override void PostConfigureServices(ServiceConfigurationContext context)
-        {
-            context.Services.GetSingletonInstanceOrNull<IRequestExecutorBuilder>()?.AddModuleTypes(this.GetType());
-            base.PostConfigureServices(context);
-        }
-
     }
 
     public class GeexModule : AbpModule
@@ -153,6 +107,7 @@ namespace Geex.Common.Abstractions
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var env = context.Services.GetSingletonInstance<IWebHostEnvironment>();
+            context.Services.AddWebSockets(x => { });
             context.Services.AddCors(options =>
             {
                 if (env.IsDevelopment())
@@ -168,34 +123,24 @@ namespace Geex.Common.Abstractions
                 }
             });
             base.ConfigureServices(context);
+            this.SchemaBuilder.ConfigExtensionTypes();
         }
 
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
+        public override async Task OnPreApplicationInitializationAsync(ApplicationInitializationContext context)
         {
             var app = context.GetApplicationBuilder();
             //var _env = context.GetEnvironment();
             //var _configuration = context.GetConfiguration();
-            app.UseWebSockets();
-            base.OnApplicationInitialization(context);
-        }
+            app.UseEndpoints(endpoints => endpoints.MapGraphQL());
+            app.UseEndpoints(endpoints => endpoints.MapHealthChecks("/health-check"));
 
-        /// <inheritdoc />
-        public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
-        {
+            app.UseVoyager("/graphql", "/voyager");
+
             var coreModuleOptions = context.ServiceProvider.GetService<GeexCoreModuleOptions>();
             if (coreModuleOptions.AutoMigration)
             {
-                context.ServiceProvider.GetService<DbContext>().MigrateAsync<T>().Wait();
+                context.ServiceProvider.GetService<DbContext>().MigrateAsync().Wait();
             }
-            base.OnPostApplicationInitialization(context);
-            var app = context.GetApplicationBuilder();
-            app.UseEndpoints(endpoints =>
-                {
-                    endpoints.MapGraphQL();
-                });
-            app.UseVoyager("/graphql", "/voyager");
-            app.UsePlayground("/graphql", "/playground");
-            base.OnPostApplicationInitialization(context);
         }
     }
 }

@@ -11,7 +11,6 @@ using Geex.Common.Abstraction.Bson;
 using Geex.Common.Abstraction.Gql;
 using Geex.Common.Abstractions;
 using Geex.Common.Gql;
-using Geex.Common.Gql.Roots;
 using Geex.Common.Gql.Types;
 
 using HotChocolate;
@@ -35,6 +34,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.WebSockets;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -73,7 +73,7 @@ namespace Geex.Common
             context.Services.AddInMemorySubscriptions();
             context.Services.AddSingleton(schemaBuilder);
             context.Services.AddHttpResultSerializer(x => new GeexResultSerializerWithCustomStatusCodes(new LazyFactory<ClaimsPrincipal>(x)));
-            schemaBuilder.AddConvention<ITypeInspector>(typeof(ClassEnumTypeConvention))
+            schemaBuilder.AddConvention<ITypeInspector>(typeof(GeexTypeInspector))
                 .AddTypeConverter((Type source, Type target, out ChangeType? converter) =>
                 {
                     converter = o => o;
@@ -102,8 +102,8 @@ namespace Geex.Common
                 .AddQueryType()
                 .AddMutationType()
                 .AddSubscriptionType()
-                .AddCommonTypes()
-                .OnSchemaError((ctx, err) => { throw new Exception("schema error", err); });
+                .AddCommonTypes();
+            //.OnSchemaError((ctx, err) => { throw new Exception("schema error", err); });
             context.Services.AddHttpContextAccessor();
             context.Services.AddObjectAccessor<IApplicationBuilder>();
 
@@ -114,6 +114,8 @@ namespace Geex.Common
             x.GetService<IHttpContextAccessor>()?.HttpContext?.User);
             context.Services.AddResponseCompression(x =>
             {
+                // todo: 此处可能有安全风险
+                // https://security.stackexchange.com/questions/19911/crime-how-to-beat-the-beast-successor/19914#19914
                 x.EnableForHttps = true;
                 x.Providers.Add<GzipCompressionProvider>();
             });
@@ -128,8 +130,10 @@ namespace Geex.Common
             base.PostConfigureServices(context);
         }
 
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
+        /// <inheritdoc />
+        public override Task OnPreApplicationInitializationAsync(ApplicationInitializationContext context)
         {
+            this.ConfigureModuleEntityMaps(context.ServiceProvider);
             var _env = context.GetEnvironment();
             if (!_env.IsUnitTest())
             {
@@ -137,6 +141,7 @@ namespace Geex.Common
 
                 app.UseCors();
                 app.UseRouting();
+                app.UseWebSockets();
                 if (_env.IsDevelopment())
                 {
                     app.UseDeveloperExceptionPage();
@@ -149,20 +154,7 @@ namespace Geex.Common
                 app.UseResponseCompression();
             }
 
-            base.OnApplicationInitialization(context);
-        }
-
-        /// <inheritdoc />
-        public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
-        {
-            var _env = context.GetEnvironment();
-            if (!_env.IsUnitTest())
-            {
-                var app = context.GetApplicationBuilder();
-                app.UseHealthChecks("/health-check");
-            }
-
-            base.OnPostApplicationInitialization(context);
+            return base.OnPreApplicationInitializationAsync(context);
         }
     }
 }

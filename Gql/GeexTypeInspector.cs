@@ -7,7 +7,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace Geex.Common.Gql
 {
-    public class ClassEnumTypeConvention : DefaultTypeInspector
+    public class GeexTypeInspector : DefaultTypeInspector
     {
         protected override void Initialize(IConventionContext context)
         {

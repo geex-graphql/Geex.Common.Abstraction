@@ -82,11 +82,6 @@ namespace Geex.Common.Abstraction.Storage
             return await base.SaveChanges(cancellation);
         }
 
-        public override IEnumerable<Assembly> FindMigrationAssemblies(Type targetType)
-        {
-            return GeexModule.KnownModuleAssembly;
-        }
-
         public TResult RawCommand<TResult>(Command<TResult> command, ReadPreference readPreference = default,
             CancellationToken cancellationToken = default)
         {
