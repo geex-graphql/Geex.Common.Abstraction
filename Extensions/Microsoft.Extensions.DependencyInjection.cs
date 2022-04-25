@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -152,11 +153,14 @@ namespace Microsoft.Extensions.DependencyInjection
                 var classEnumTypes = exportedTypes.Where(x => !x.IsAbstract && x.IsClassEnum() && x.Name != nameof(Enumeration)).ToList();
                 foreach (var classEnumType in classEnumTypes)
                 {
-                    schemaBuilder.BindRuntimeType(classEnumType, typeof(EnumerationType<,>).MakeGenericType(classEnumType, classEnumType.GetClassEnumValueType()));
-                    schemaBuilder.AddConvention<IFilterConvention>(new FilterConventionExtension(x =>
-                    {
-                        x.BindRuntimeType(classEnumType, typeof(ClassEnumOperationFilterInput<>).MakeGenericType(classEnumType));
-                    }));
+                    schemaBuilder.OnBeforeSchemaCreate((context, builder) =>
+                        {
+                            builder.AddConvention(typeof(IFilterConvention), sp => new FilterConventionExtension(x =>
+                            {
+                                x.BindRuntimeType(classEnumType, typeof(ClassEnumOperationFilterInput<>).MakeGenericType(classEnumType));
+                            }));
+                            builder.BindRuntimeType(classEnumType, typeof(EnumerationType<,>).MakeGenericType(classEnumType, classEnumType.GetClassEnumValueType()));
+                        });
                 }
 
                 var directiveTypes = exportedTypes.Where(x => AbpTypeExtensions.IsAssignableTo<DirectiveType>(x)).ToList();

@@ -69,7 +69,10 @@ namespace Geex.Common
             var moduleOptions = this.ModuleOptions;
             context.Services.AddStorage();
             var schemaBuilder = context.Services.AddGraphQLServer();
-            context.Services.AddStackExchangeRedisExtensions();
+            if (moduleOptions.Redis != default)
+            {
+                context.Services.AddStackExchangeRedisExtensions();
+            }
             context.Services.AddInMemorySubscriptions();
             context.Services.AddSingleton(schemaBuilder);
             context.Services.AddHttpResultSerializer(x => new GeexResultSerializerWithCustomStatusCodes(new LazyFactory<ClaimsPrincipal>(x)));
@@ -98,9 +101,9 @@ namespace Geex.Common
                 .AddConvention<IFilterConvention>(new FilterConventionExtension(x => x.Provider(new GeexQueryablePostFilterProvider(y => y.AddDefaultFieldHandlers()))))
                 .AddSorting()
                 .AddProjections()
-                .AddQueryType()
-                .AddMutationType()
-                .AddSubscriptionType()
+                .AddQueryType(x => x.Field("_").Type<AnyType>().Resolve(x => null))
+                .AddMutationType(x => x.Field("_").Type<AnyType>().Resolve(x => null))
+                .AddSubscriptionType(x => x.Field("_").Type<AnyType>().Resolve(x => null))
                 .AddCommonTypes()
                 .InitializeOnStartup()
                 ;

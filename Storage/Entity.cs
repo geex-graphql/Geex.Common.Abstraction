@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
+using HotChocolate;
+
 using MediatR;
 
 using MongoDB.Bson.Serialization.Attributes;
@@ -17,6 +19,7 @@ namespace Geex.Common.Abstraction.Storage
             set => base.DbContext = value;
         }
         public DateTimeOffset ModifiedOn { get; set; }
+        [GraphQLIgnore]
 
         public void AddDomainEvent(params INotification[] events)
         {
@@ -29,6 +32,7 @@ namespace Geex.Common.Abstraction.Storage
         /// <summary>Determines whether the specified object is valid.</summary>
         /// <param name="validationContext">The validation context.</param>
         /// <returns>A collection that holds failed-validation information.</returns>
+        [GraphQLIgnore]
         public virtual IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             yield return ValidationResult.Success;
