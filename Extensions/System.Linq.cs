@@ -5,8 +5,10 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-
+using Geex.Common.Abstraction;
 using Geex.Common.Abstractions;
+
+using MongoDB.Entities;
 
 // ReSharper disable once CheckNamespace
 namespace System.Linq
@@ -127,6 +129,16 @@ namespace System.Linq
             }
 
             return data;
+        }
+
+        public static T? FindById<T>(this IQueryable<T> query, string id) where T : class, IEntity
+        {
+            return query?.FirstOrDefault(x => x.Id == id);
+        }
+
+        public static IQueryable<T> FilterByIds<T>(this IQueryable<T> query, params string[] ids) where T : class, IHasId
+        {
+            return query.Where(x => ids.Contains(x.Id));
         }
     }
 }

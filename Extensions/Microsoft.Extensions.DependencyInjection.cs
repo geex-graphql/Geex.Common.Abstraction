@@ -83,7 +83,7 @@ namespace Microsoft.Extensions.DependencyInjection
             //builder.AddScoped(x => new DbContext(transactional: true));
             builder.AddScoped<IUnitOfWork>(x =>
             {
-                if (x.TryGetService(typeof(IHttpContextAccessor), out var acce) && (acce as IHttpContextAccessor)?.HttpContext?.Request.Headers.TryGetValue("gqlType", out var gqlType) == true && gqlType == "query")
+                if (x.TryGetService(typeof(IHttpContextAccessor), out var acce) && (acce as IHttpContextAccessor)?.HttpContext?.Request.Headers.TryGetValue("x-gql-type", out var gqlType) == true && gqlType == "query")
                 {
                     return new WrapperUnitOfWork(new GeexDbContext(x, entityTrackingEnabled: false), x.GetService<ILogger<IUnitOfWork>>());
                 }

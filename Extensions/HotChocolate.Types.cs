@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Geex.Common;
 using Geex.Common.Abstraction;
 using Geex.Common.Abstraction.Auditing;
+using Geex.Common.Abstractions;
 using Geex.Common.Authorization;
 using Geex.Common.Gql.Types;
 
@@ -35,21 +36,6 @@ namespace HotChocolate.Types
 {
     public static class HotChocolateTypesExtension
     {
-        public static IObjectFieldDescriptor ConfigQuery<TResolver>(
-            this IObjectTypeDescriptor<TResolver> @this,
-            Expression<Func<TResolver, object?>> propertyOrMethod)
-        {
-            var method = (propertyOrMethod.Body as MethodCallExpression).Method;
-            var field = @this.Field(method.Name.ToCamelCase());
-            foreach (var parameterInfo in method.GetParameters().Where(x => !x.CustomAttributes.Any()))
-            {
-                field.Argument(parameterInfo.Name, x => x.Type(parameterInfo.ParameterType));
-            }
-            field.Type(method.ReturnType);
-            field = field.ResolveWith(propertyOrMethod);
-            return field;
-        }
-
         public static void ConfigEntity<T>(
             this IObjectTypeDescriptor<T> @this) where T : Entity
         {
@@ -60,6 +46,15 @@ namespace HotChocolate.Types
             {
                 @this.Field(x => ((IAuditEntity)x).AuditStatus);
                 @this.Field(x => ((IAuditEntity)x).Submittable);
+            }
+
+            var getters = typeof(T).GetProperties().Where(x => x.PropertyType.Name == "Lazy`1");
+            foreach (var getter in getters)
+            {
+                var field = @this.Field(getter);
+                var valueType = getter.PropertyType.GenericTypeArguments[0];
+                field.Resolve(x => getter.GetMethod!.Invoke(x.Parent<T>(), Array.Empty<object>())?.GetLazyValue(valueType));
+                field.Type(valueType);
             }
         }
 
@@ -136,7 +131,7 @@ namespace HotChocolate.Types
 
         public static string GetAggregateAuthorizePrefix<TAggregate>(this IObjectTypeDescriptor<TAggregate> @this)
         {
-            var moduleName = typeof(TAggregate).Assembly.GetName().Name.Split(".").ToList().Where(x => !x.IsIn("Gql", "Api", "Core", "Tests")).Last().ToCamelCase();
+            var moduleName = typeof(TAggregate).DomainName();
             var entityName = typeof(TAggregate).Name.ToCamelCase();
             var prefix = $"{moduleName}_query_{entityName}";
             return prefix;
@@ -255,13 +250,14 @@ namespace HotChocolate.Types
             return fieldDescriptor;
         }
 
-        internal static void ConfigExtensionFields<T>(this IObjectTypeDescriptor<T> descriptor) where T : ObjectTypeExtension
+        internal static void ConfigExtensionFields<T>(this IObjectTypeDescriptor<T> descriptor)
         {
-            descriptor.Field(x => x.Kind).Ignore();
-            descriptor.Field(x => x.Scope).Ignore();
-            descriptor.Field(x => x.Name).Ignore();
-            descriptor.Field(x => x.Description).Ignore();
-            descriptor.Field(x => x.ContextData).Ignore();
+            var type = typeof(T);
+            descriptor.Field(type.GetProperty(nameof(ObjectTypeExtension.Kind))).Ignore();
+            descriptor.Field(type.GetProperty(nameof(ObjectTypeExtension.Scope))).Ignore();
+            descriptor.Field(type.GetProperty(nameof(ObjectTypeExtension.Name))).Ignore();
+            descriptor.Field(type.GetProperty(nameof(ObjectTypeExtension.Description))).Ignore();
+            descriptor.Field(type.GetProperty(nameof(ObjectTypeExtension.ContextData))).Ignore();
         }
     }
 }

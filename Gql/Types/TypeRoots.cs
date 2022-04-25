@@ -3,29 +3,37 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Geex.Common.Abstraction.Auditing;
+
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
+
 using MediatR;
 
 namespace Geex.Common.Abstraction.Gql.Types
 {
-    public abstract class Query<T> : ObjectTypeExtension<T> where T : ObjectTypeExtension
+    public abstract class QueryExtension<T> : ObjectTypeExtension<T>
     {
         protected override void Configure(IObjectTypeDescriptor<T> descriptor)
         {
             descriptor.Name(OperationTypeNames.Query);
-            descriptor.ConfigExtensionFields();
+            if (typeof(T).IsAssignableTo<ObjectTypeExtension>())
+            {
+                descriptor.ConfigExtensionFields();
+            }
             base.Configure(descriptor);
         }
     }
-    public abstract class Mutation<T> : ObjectTypeExtension<T> where T : ObjectTypeExtension
+    public abstract class MutationExtension<T> : ObjectTypeExtension<T>
     {
         protected override void Configure(IObjectTypeDescriptor<T> descriptor)
         {
             descriptor.Name(OperationTypeNames.Mutation);
-            descriptor.ConfigExtensionFields();
+            if (typeof(T).IsAssignableTo<ObjectTypeExtension>())
+            {
+                descriptor.ConfigExtensionFields();
+            }
 
             if (typeof(T).IsAssignableTo<IHasAuditMutation>())
             {
@@ -78,12 +86,15 @@ namespace Geex.Common.Abstraction.Gql.Types
             base.Configure(descriptor);
         }
     }
-    public abstract class Subscription<T> : ObjectTypeExtension<T> where T : ObjectTypeExtension
+    public abstract class SubscriptionExtension<T> : ObjectTypeExtension<T>
     {
         protected override void Configure(IObjectTypeDescriptor<T> descriptor)
         {
             descriptor.Name(OperationTypeNames.Subscription);
-            descriptor.ConfigExtensionFields();
+            if (typeof(T).IsAssignableTo<ObjectTypeExtension>())
+            {
+                descriptor.ConfigExtensionFields();
+            }
 
             base.Configure(descriptor);
         }

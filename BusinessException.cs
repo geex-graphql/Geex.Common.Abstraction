@@ -18,9 +18,29 @@ namespace Geex.Common.Abstractions
             LogLevel = exceptionType.LogLevel;
         }
 
+        public BusinessException(Exception? innerException = default,
+            string? message = default) : base(message, innerException)
+        {
+            var exceptionType = BusinessException.Default;
+            ExceptionName = exceptionType.Name;
+            ExceptionCode = exceptionType.Value;
+            LogMessage = message ?? exceptionType.DefaultLogMessage;
+            LogLevel = exceptionType.LogLevel;
+        }
+
+        public BusinessException(string? message = default) : base(message)
+        {
+            var exceptionType = BusinessException.Default;
+            ExceptionName = exceptionType.Name;
+            ExceptionCode = exceptionType.Value;
+            LogMessage = message ?? exceptionType.DefaultLogMessage;
+            LogLevel = exceptionType.LogLevel;
+        }
+
         public string ExceptionCode { get; set; }
 
         public string ExceptionName { get; set; }
+        public static GeexExceptionType Default { get; } = GeexExceptionType.Unknown;
     }
 
     /// <summary>

@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
 // ReSharper disable once CheckNamespace
-namespace System.Reflection
+namespace System
 {
     public static class SystemTypeExtensions
     {
@@ -52,6 +53,15 @@ namespace System.Reflection
 
             return prop.DeclaringType.GetFields(BindingFlags.NonPublic | BindingFlags.Instance)
                                      .Any(f => f.Name.Contains("<" + prop.Name + ">"));
+        }
+        /// <summary>
+        /// 获取领域名称, bug:需要加缓存以优化性能
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static string DomainName(this Type value)
+        {
+            return value.Assembly.GetName().Name.Split(".").ToList().Last(x => !x.IsIn("Gql", "Api", "Core", "Tests")).ToCamelCase();
         }
     }
 

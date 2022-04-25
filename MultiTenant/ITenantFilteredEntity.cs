@@ -19,7 +19,7 @@ namespace Geex.Common.Abstraction.MultiTenant
         /// <summary>
         /// 租户编码, 为null时为宿主数据
         /// </summary>
-        string? TenantCode { get; }
+        string? TenantCode { get; [Obsolete(message: "框架会自动维护租户编码, 请勿直接set.", error: true)] set; }
 
         /// <summary>
         /// 设置租户信息<br/>

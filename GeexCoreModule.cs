@@ -91,8 +91,7 @@ namespace Geex.Common
                     MaxPageSize = moduleOptions.MaxPageSize
                 })
                 .AddErrorFilter<LoggingErrorFilter>(_ =>
-                    new LoggingErrorFilter(context.Services.GetServiceProviderOrNull()
-                        .GetService<ILoggerProvider>()))
+                    new LoggingErrorFilter(_.GetService<ILoggerProvider>()))
                 .AddValidationVisitor<ExtraArgsTolerantValidationVisitor>()
                 .AddTransactionScopeHandler<GeexTransactionScopeHandler>()
                 .AddFiltering()
@@ -102,7 +101,9 @@ namespace Geex.Common
                 .AddQueryType()
                 .AddMutationType()
                 .AddSubscriptionType()
-                .AddCommonTypes();
+                .AddCommonTypes()
+                .InitializeOnStartup()
+                ;
             //.OnSchemaError((ctx, err) => { throw new Exception("schema error", err); });
             context.Services.AddHttpContextAccessor();
             context.Services.AddObjectAccessor<IApplicationBuilder>();

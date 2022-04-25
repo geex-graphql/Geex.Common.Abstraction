@@ -13,6 +13,7 @@
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.1.0" />
     <PackageReference Include="Autofac.Extras.DynamicProxy" Version="6.0.0" />
     <PackageReference Include="Casbin.NET" Version="1.11.0" />
+    <PackageReference Include="HonkSharp" Version="1.0.3" />
     <PackageReference Include="HotChocolate.AspNetCore" Version="12.7.0" />
     <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="12.7.0" />
     <PackageReference Include="HotChocolate.AspNetCore.Voyager" Version="10.5.5" />

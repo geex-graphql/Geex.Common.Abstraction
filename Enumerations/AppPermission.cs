@@ -1,6 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,9 +21,7 @@ namespace Geex.Common.Authorization
 
     public abstract class AppPermission<TImplementation> : AppPermission
     {
-        private static string _moduleName = typeof(TImplementation).Name.RemovePostFix("Permission").Camelize();
-
-        public AppPermission(string value) : base(_moduleName + "_" + value)
+        public AppPermission(PermissionString value) : base(value)
         {
 
         }
