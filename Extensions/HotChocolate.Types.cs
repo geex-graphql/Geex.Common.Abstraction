@@ -41,14 +41,13 @@ namespace HotChocolate.Types
         {
             @this.Field(x => x.Id);
             @this.Field(x => x.CreatedOn);
-            @this.Field(x => x.Validate(default)).Ignore();
             if (typeof(T).IsAssignableTo<IAuditEntity>())
             {
                 @this.Field(x => ((IAuditEntity)x).AuditStatus);
                 @this.Field(x => ((IAuditEntity)x).Submittable);
             }
 
-            var getters = typeof(T).GetProperties().Where(x => x.PropertyType.Name == "Lazy`1");
+            var getters = typeof(T).GetProperties().Where(x => x.PropertyType.Name == "ResettableLazy`1");
             foreach (var getter in getters)
             {
                 var field = @this.Field(getter);

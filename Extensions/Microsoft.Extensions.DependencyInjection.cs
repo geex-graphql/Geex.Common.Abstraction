@@ -82,14 +82,7 @@ namespace Microsoft.Extensions.DependencyInjection
             mongoSettings.ApplicationName = commonModuleOptions.AppName;
             DB.InitAsync(mongoUrl.DatabaseName ?? commonModuleOptions.AppName, mongoSettings).Wait();
             //builder.AddScoped(x => new DbContext(transactional: true));
-            builder.AddScoped<IUnitOfWork>(x =>
-            {
-                if (x.TryGetService(typeof(IHttpContextAccessor), out var acce) && (acce as IHttpContextAccessor)?.HttpContext?.Request.Headers.TryGetValue("x-gql-type", out var gqlType) == true && gqlType == "query")
-                {
-                    return new WrapperUnitOfWork(new GeexDbContext(x, entityTrackingEnabled: false), x.GetService<ILogger<IUnitOfWork>>());
-                }
-                return new WrapperUnitOfWork(new GeexDbContext(x, transactional: true, entityTrackingEnabled: true), x.GetService<ILogger<IUnitOfWork>>());
-            });
+            builder.AddScoped<IUnitOfWork>(x => new WrapperUnitOfWork(new GeexDbContext(x, transactional: true, entityTrackingEnabled: true), x.GetService<ILogger<IUnitOfWork>>()));
             // 直接从当前uow提取
             builder.AddScoped<DbContext>(x => (x.GetService<IUnitOfWork>() as WrapperUnitOfWork)!.DbContext);
             return builder;
@@ -155,11 +148,14 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     schemaBuilder.OnBeforeSchemaCreate((context, builder) =>
                         {
-                            builder.AddConvention(typeof(IFilterConvention), sp => new FilterConventionExtension(x =>
+                            if (classEnumType.GetClassEnumRealType().BaseType.GetProperty(nameof(Enumeration.DynamicValues)).GetValue(null).As<IEnumerable<IEnumeration>>().Any())
                             {
-                                x.BindRuntimeType(classEnumType, typeof(ClassEnumOperationFilterInput<>).MakeGenericType(classEnumType));
-                            }));
-                            builder.BindRuntimeType(classEnumType, typeof(EnumerationType<,>).MakeGenericType(classEnumType, classEnumType.GetClassEnumValueType()));
+                                builder.AddConvention(typeof(IFilterConvention), sp => new FilterConventionExtension(x =>
+                                {
+                                    x.BindRuntimeType(classEnumType, typeof(ClassEnumOperationFilterInput<>).MakeGenericType(classEnumType));
+                                }));
+                                builder.BindRuntimeType(classEnumType, typeof(EnumerationType<,>).MakeGenericType(classEnumType, classEnumType.GetClassEnumValueType()));
+                            }
                         });
                 }
 

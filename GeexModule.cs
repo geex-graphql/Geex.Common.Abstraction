@@ -110,14 +110,14 @@ namespace Geex.Common.Abstractions
             context.Services.AddWebSockets(x => { });
             context.Services.AddCors(options =>
             {
-                if (env.IsDevelopment())
+                var corsRegex = Configuration.GetValue<string>("CorsRegex");
+                if (corsRegex.IsNullOrEmpty())
                 {
                     options.AddDefaultPolicy(x =>
                         x.SetIsOriginAllowed(x => true).AllowAnyHeader().AllowAnyMethod().AllowCredentials());
                 }
                 else
                 {
-                    var corsRegex = Configuration.GetValue<string>("CorsRegex");
                     var regex = new Regex(corsRegex, RegexOptions.Compiled);
                     options.AddDefaultPolicy(x => x.SetIsOriginAllowed(origin => regex.Match(origin).Success).AllowAnyHeader().AllowAnyMethod().AllowCredentials());
                 }

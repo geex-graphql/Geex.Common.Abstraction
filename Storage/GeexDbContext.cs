@@ -16,7 +16,7 @@ using MongoDB.Driver;
 using MongoDB.Entities;
 
 using MoreLinq;
-
+using Nito.AsyncEx.Synchronous;
 using Volo.Abp;
 
 using BusinessException = Geex.Common.Abstractions.BusinessException;
@@ -38,12 +38,30 @@ namespace Geex.Common.Abstraction.Storage
             {
                 return default;
             }
-            if (entity is Entity geexEntity && entity.Id.IsNullOrEmpty())
+
+            if (entity is Entity geexEntity)
             {
-                this.DomainEvents.Enqueue(new EntityCreatedNotification<T>((T)(object)geexEntity));
+                if (entity.Id.IsNullOrEmpty())
+                {
+                    this.DomainEvents.Enqueue(new EntityCreatedNotification<T>((T)(object)geexEntity));
+                    entity = base.Attach(entity);
+                    // todo: 区分innerAttach和外部attach, innerAttach不进行校验逻辑
+#pragma warning disable CS0618
+                    geexEntity.Validate().WaitAndUnwrapException();
+#pragma warning restore CS0618
+                }
+                else
+                {
+                    entity = base.Attach(entity);
+                }
+
+            }
+            else
+            {
+                entity = base.Attach(entity);
             }
 
-            return base.Attach(entity);
+            return entity;
         }
 
         public override IEnumerable<T> Attach<T>(IEnumerable<T> entities)
@@ -72,12 +90,7 @@ namespace Geex.Common.Abstraction.Storage
             var entities = Local.TypedCacheDictionary.Values.SelectMany(y => y.Values).OfType<Entity>();
             foreach (var entity in entities)
             {
-                var validateResult = entity.Validate(new ValidationContext(entity, ServiceProvider, null));
-                if (validateResult.Any(x => x != ValidationResult.Success))
-                {
-                    throw new BusinessException(GeexExceptionType.ValidationFailed, null,
-                        string.Join("\\\n", validateResult.Select(x => x.ErrorMessage)));
-                }
+                entity.Validate();
             }
             return await base.SaveChanges(cancellation);
         }

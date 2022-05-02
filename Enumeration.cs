@@ -42,7 +42,7 @@ namespace Geex.Common.Abstractions
         public Enumeration() : base((x) => x.Name, x => x.Value)
         {
         }
-        public static readonly List<TEnum> DynamicValues = new List<TEnum>();
+        public static List<TEnum> DynamicValues => GetAllOptions().ToList();
         static readonly Lazy<Dictionary<string, TEnum>> _fromName =
             new Lazy<Dictionary<string, TEnum>>(() => GetAllOptions().ToDictionary(item => item.Name));
 
@@ -72,11 +72,11 @@ namespace Geex.Common.Abstractions
             foreach (Type enumType in enumTypes)
             {
                 List<TEnum> typeEnumOptions = enumType.GetPropertiesOfType<TEnum>();
-                var dynamicOptions = enumType.BaseType?.GetField(nameof(Enumeration.DynamicValues))?.GetValue(default) as List<TEnum>;
-                if (dynamicOptions?.Any() == true)
-                {
-                    typeEnumOptions.AddRange(dynamicOptions);
-                }
+                //var dynamicOptions = enumType.BaseType?.GetField(nameof(Enumeration.DynamicValues))?.GetValue(default) as List<TEnum>;
+                //if (dynamicOptions?.Any() == true)
+                //{
+                //    typeEnumOptions.AddRange(dynamicOptions);
+                //}
                 options.AddRange(typeEnumOptions);
             }
 

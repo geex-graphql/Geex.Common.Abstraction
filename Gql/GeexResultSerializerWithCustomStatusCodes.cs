@@ -16,9 +16,9 @@ namespace Geex.Common.Abstraction.Gql
 {
     public class GeexResultSerializerWithCustomStatusCodes : DefaultHttpResultSerializer
     {
-        private readonly LazyFactory<ClaimsPrincipal> _claimsPrincipalFactory;
+        private readonly LazyService<ClaimsPrincipal> _claimsPrincipalFactory;
 
-        public GeexResultSerializerWithCustomStatusCodes(LazyFactory<ClaimsPrincipal> claimsPrincipalFactory)
+        public GeexResultSerializerWithCustomStatusCodes(LazyService<ClaimsPrincipal> claimsPrincipalFactory)
         {
             _claimsPrincipalFactory = claimsPrincipalFactory;
         }

@@ -20,7 +20,7 @@ namespace Geex.Common.Gql
         /// <inheritdoc />
         public override IExtendedType GetReturnType(MemberInfo member, bool ignoreAttributes = false)
         {
-            if (member is PropertyInfo property && property.PropertyType.Name == "Lazy`1")
+            if (member is PropertyInfo property && property.PropertyType.Name == "ResettableLazy`1")
             {
                 return base.GetType(property.PropertyType.GenericTypeArguments[0]);
             }

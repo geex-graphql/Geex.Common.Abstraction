@@ -75,7 +75,7 @@ namespace Geex.Common
             }
             context.Services.AddInMemorySubscriptions();
             context.Services.AddSingleton(schemaBuilder);
-            context.Services.AddHttpResultSerializer(x => new GeexResultSerializerWithCustomStatusCodes(new LazyFactory<ClaimsPrincipal>(x)));
+            context.Services.AddHttpResultSerializer(x => new GeexResultSerializerWithCustomStatusCodes(new LazyService<ClaimsPrincipal>(x)));
             schemaBuilder.AddConvention<ITypeInspector>(typeof(GeexTypeInspector))
                 .AddTypeConverter((Type source, Type target, out ChangeType? converter) =>
                 {
@@ -113,7 +113,7 @@ namespace Geex.Common
 
             context.Services.AddHealthChecks();
 
-            context.Services.AddTransient(typeof(LazyFactory<>));
+            context.Services.AddTransient(typeof(LazyService<>));
             context.Services.AddTransient<ClaimsPrincipal>(x =>
             x.GetService<IHttpContextAccessor>()?.HttpContext?.User);
             context.Services.AddResponseCompression(x =>

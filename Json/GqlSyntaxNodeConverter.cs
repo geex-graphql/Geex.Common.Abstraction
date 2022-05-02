@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace Geex.Common.Abstraction.Json
 {
@@ -28,7 +29,8 @@ namespace Geex.Common.Abstraction.Json
         /// <param name="options">An object that specifies serialization options to use.</param>
         public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
         {
-            writer.WriteStringValue(value.ToString());
+            var str = value is ObjectFieldNode { Value: FileValueNode fileValue } ? $"<file:{fileValue.Value.Name}>" : value.ToString();
+            writer.WriteStringValue(str);
         }
     }
     public class GqlSyntaxNodeConverter : JsonConverterFactory

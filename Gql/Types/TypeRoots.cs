@@ -10,10 +10,11 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 
 using MediatR;
+using Volo.Abp.DependencyInjection;
 
 namespace Geex.Common.Abstraction.Gql.Types
 {
-    public abstract class QueryExtension<T> : ObjectTypeExtension<T>
+    public abstract class QueryExtension<T> : ObjectTypeExtension<T>, IScopedDependency
     {
         protected override void Configure(IObjectTypeDescriptor<T> descriptor)
         {
@@ -25,7 +26,7 @@ namespace Geex.Common.Abstraction.Gql.Types
             base.Configure(descriptor);
         }
     }
-    public abstract class MutationExtension<T> : ObjectTypeExtension<T>
+    public abstract class MutationExtension<T> : ObjectTypeExtension<T>, IScopedDependency
     {
         protected override void Configure(IObjectTypeDescriptor<T> descriptor)
         {
@@ -86,7 +87,7 @@ namespace Geex.Common.Abstraction.Gql.Types
             base.Configure(descriptor);
         }
     }
-    public abstract class SubscriptionExtension<T> : ObjectTypeExtension<T>
+    public abstract class SubscriptionExtension<T> : ObjectTypeExtension<T>, IScopedDependency
     {
         protected override void Configure(IObjectTypeDescriptor<T> descriptor)
         {

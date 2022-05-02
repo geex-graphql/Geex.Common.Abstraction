@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Geex.Common.Abstraction;
 
 namespace System
 {
@@ -27,7 +28,7 @@ namespace System
         }
 
         /// <summary>
-        /// 用于强制触发属性成员调用
+        /// 用于强制获取Lazy值
         /// </summary>
         public static object? GetLazyValue(this object lazy, Type valueType)
         {
@@ -37,7 +38,7 @@ namespace System
                 return method.Invoke(lazy, Array.Empty<object>());
             }
             var lazyType = lazy.GetType();
-            method = lazyType.GetProperty(nameof(Lazy<object>.Value))!.GetMethod!;
+            method = lazyType.GetProperty(nameof(ResettableLazy<object>.Value))!.GetMethod!;
             LazyGetterCache.Add(valueType, method);
             return method.Invoke(lazy, Array.Empty<object>());
         }
