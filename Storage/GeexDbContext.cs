@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Geex.Common.Abstractions;
-
+using KellermanSoftware.CompareNetObjects;
 using MediatR;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +25,10 @@ namespace Geex.Common.Abstraction.Storage
 {
     public class GeexDbContext : DbContext
     {
+        static GeexDbContext()
+        {
+            DbContext._compareLogic.Config.CustomComparers.Add(new EnumerationComparer(RootComparerFactory.GetRootComparer()));
+        }
         public GeexDbContext(IServiceProvider serviceProvider = default, string database = default,
             bool transactional = false,
             ClientSessionOptions options = null, bool entityTrackingEnabled = true) : base(serviceProvider, database, transactional, options, entityTrackingEnabled)

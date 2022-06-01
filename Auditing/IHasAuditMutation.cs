@@ -13,7 +13,7 @@ namespace Geex.Common.Abstraction.Auditing
     public interface IHasAuditMutation
     {
     }
-    public interface IHasAuditMutation<T> : IHasAuditMutation
+    public interface IHasAuditMutation<T> : IHasAuditMutation where T : IAuditEntity
     {
         async Task<bool> Submit([Service] IMediator mediator, string[] ids, string? remark)
         {

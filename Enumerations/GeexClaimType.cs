@@ -1,6 +1,6 @@
 ﻿namespace Geex.Common.Abstractions.Enumerations
 {
-    public class GeexClaimType : Enumeration<GeexClaimType, string>
+    public class GeexClaimType : Enumeration<GeexClaimType>
     {
         public const string _Sub = "sub";
         public static GeexClaimType Sub { get; } = new GeexClaimType(nameof(Sub), _Sub);

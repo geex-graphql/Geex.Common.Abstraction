@@ -77,34 +77,50 @@ namespace StackExchange.Redis.Extensions.Core
             return obj.GetHashCode().ToString();
         }
 
-        public static async Task<T> GetNamedAsync<T>(this IRedisDatabase service, string key, string @namespace = default)
+        public static async Task<T?> GetNamedAsync<T>(this IRedisDatabase service, string key, string? @namespace = default)
         {
-            @namespace ??= typeof(T).Name;
-            return (await service.GetAsync<T>($"{@namespace}:{key}"));
+            var prefix = $"{typeof(T).Name}";
+            if (@namespace != default)
+            {
+                prefix = $"{@namespace}:{prefix}";
+            }
+            return (await service.GetAsync<T>($"{prefix}:{key}"));
         }
 
-        public static async Task<IDictionary<string, T>> GetAllNamedByKeyAsync<T>(this IRedisDatabase service, string @namespace = default, string searchPattern = default)
+        public static async Task<IDictionary<string, T>> GetAllNamedByKeyAsync<T>(this IRedisDatabase service, string? @namespace = default, string searchPattern = default)
         {
-            @namespace ??= typeof(T).Name;
-            var keys = await service.SearchKeysAsync($"{@namespace}:{searchPattern ?? "*"}");
+            var prefix = $"{typeof(T).Name}";
+            if (@namespace != default)
+            {
+                prefix = $"{@namespace}:{prefix}";
+            }
+            var keys = await service.SearchKeysAsync($"{prefix}:{searchPattern ?? "*"}");
             var result = (await service.GetAllAsync<T>(keys));
             return result;
         }
 
         public static async Task<bool> RemoveNamedAsync<T>(this IRedisDatabase service, string key,
-            string @namespace = default, CommandFlags command = CommandFlags.None)
+            string? @namespace = default, CommandFlags command = CommandFlags.None)
         {
-            @namespace ??= typeof(T).Name;
-            return await service.RemoveAsync($"{@namespace}:{key}", command);
+            var prefix = $"{typeof(T).Name}";
+            if (@namespace != default)
+            {
+                prefix = $"{@namespace}:{prefix}";
+            }
+            return await service.RemoveAsync($"{prefix}:{key}", command);
         }
 
-        public static async Task<bool> RemoveAllNamedAsync<T>(this IRedisDatabase service, string @namespace = default)
+        public static async Task<bool> RemoveAllNamedAsync<T>(this IRedisDatabase service, string? @namespace = default)
         {
-            @namespace ??= typeof(T).Name;
-            return await service.RemoveAsync($"{@namespace}");
+            var prefix = $"{typeof(T).Name}";
+            if (@namespace != default)
+            {
+                prefix = $"{@namespace}:{prefix}";
+            }
+            return await service.RemoveAsync($"{prefix}");
         }
 
-        public static async Task<T> GetAndRemoveAsync<T>(this IRedisDatabase service, T obj, string @namespace = default)
+        public static async Task<T> GetAndRemoveAsync<T>(this IRedisDatabase service, T obj, string? @namespace = default)
         {
             var result = await service.GetNamedAsync<T>(obj.GetUniqueId(), @namespace);
             await service.RemoveNamedAsync<T>(obj.GetUniqueId(), @namespace);
@@ -114,16 +130,20 @@ namespace StackExchange.Redis.Extensions.Core
         public static async Task<bool> SetNamedAsync<T>(
             this IRedisDatabase service,
           T obj,
-            string @namespace = default,
+            string? @namespace = default,
             TimeSpan? expireIn = default,
           CancellationToken token = default(CancellationToken)) where T : class
         {
-            @namespace ??= typeof(T).Name;
+            var prefix = $"{typeof(T).Name}";
+            if (@namespace != default)
+            {
+                prefix = $"{@namespace}:{prefix}";
+            }
             if (expireIn.HasValue)
             {
-                return await service.AddAsync<T>($"{@namespace}:{obj.GetUniqueId()}", obj, expireIn.Value);
+                return await service.AddAsync<T>($"{prefix}:{obj.GetUniqueId()}", obj, expireIn.Value);
             }
-            return await service.AddAsync<T>($"{@namespace}:{obj.GetUniqueId()}", obj);
+            return await service.AddAsync<T>($"{prefix}:{obj.GetUniqueId()}", obj);
         }
     }
 }

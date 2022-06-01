@@ -101,10 +101,17 @@ namespace Geex.Common
                 .AddConvention<IFilterConvention>(new FilterConventionExtension(x => x.Provider(new GeexQueryablePostFilterProvider(y => y.AddDefaultFieldHandlers()))))
                 .AddSorting()
                 .AddProjections()
-                .AddQueryType(x => x.Field("_").Type<AnyType>().Resolve(x => null))
-                .AddMutationType(x => x.Field("_").Type<AnyType>().Resolve(x => null))
-                .AddSubscriptionType(x => x.Field("_").Type<AnyType>().Resolve(x => null))
+                .AddQueryType(x => x.Field("_").Type<StringType>().Resolve(x => null))
+                .AddMutationType(x => x.Field("_").Type<StringType>().Resolve(x => null))
+                .AddSubscriptionType(x => x.Field("_").Type<StringType>().Resolve(x => null))
                 .AddCommonTypes()
+                //.AddMutationConventions(new MutationConventionOptions()
+                //{
+                //    ApplyToAllMutations = true,
+                //    InputTypeNamePattern = "{MutationName}Request",
+                //    InputArgumentName = "request",
+                //})
+                .AddQueryFieldToMutationPayloads()
                 .InitializeOnStartup()
                 ;
             //.OnSchemaError((ctx, err) => { throw new Exception("schema error", err); });

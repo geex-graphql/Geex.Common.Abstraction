@@ -22,7 +22,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 using Humanizer;
-
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -41,13 +40,14 @@ namespace HotChocolate.Types
         {
             @this.Field(x => x.Id);
             @this.Field(x => x.CreatedOn);
+            @this.Field(x => x.ModifiedOn);
             if (typeof(T).IsAssignableTo<IAuditEntity>())
             {
                 @this.Field(x => ((IAuditEntity)x).AuditStatus);
                 @this.Field(x => ((IAuditEntity)x).Submittable);
             }
 
-            var getters = typeof(T).GetProperties().Where(x => x.PropertyType.Name == "ResettableLazy`1");
+            var getters = typeof(T).GetProperties().Where(x => x.PropertyType.Name == "ResettableLazy`1"||x.PropertyType.Name == "Lazy`1");
             foreach (var getter in getters)
             {
                 var field = @this.Field(getter);
@@ -121,6 +121,7 @@ namespace HotChocolate.Types
                     x.Field(y => y.AuditStatus);
                     x.Field(y => y.Submittable);
                 })
+                .AddInterfaceType<IPagedList>()
                 .BindRuntimeType<ObjectId, ObjectIdType>()
                 .BindRuntimeType<dynamic, AnyType>()
                 .BindRuntimeType<object, AnyType>()

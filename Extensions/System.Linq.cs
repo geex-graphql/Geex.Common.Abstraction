@@ -9,6 +9,7 @@ using Geex.Common.Abstraction;
 using Geex.Common.Abstractions;
 
 using MongoDB.Entities;
+using Entity = Geex.Common.Abstraction.Storage.Entity;
 
 // ReSharper disable once CheckNamespace
 namespace System.Linq
@@ -30,14 +31,14 @@ namespace System.Linq
         //    return !(source is IIListProvider<TSource> ilistProvider) ? new List<TSource>(source) : ilistProvider.ToList();
         //}
 
-        public static IEnumerable<TResult> Cast<TEnum, TResult>(this IEnumerable<TEnum> source) where TEnum : Enumeration<TEnum, TResult> where TResult : IEquatable<TResult>, IComparable<TResult>
-        {
-            if (source is IEnumerable<TResult> results)
-                return results;
-            if (source == null)
-                throw new ArgumentNullException("source");
-            return source.Select(x => (TResult)x);
-        }
+        //public static IEnumerable<TResult> Cast<TEnum, TResult>(this IEnumerable<TEnum> source) where TEnum : Enumeration<TEnum, TResult> where TResult : IEquatable<TResult>, IComparable<TResult>
+        //{
+        //    if (source is IEnumerable<TResult> results)
+        //        return results;
+        //    if (source == null)
+        //        throw new ArgumentNullException("source");
+        //    return source.Select(x => (TResult)x);
+        //}
 
         public static IQueryable<TEntityType> WhereWithPostFilter<TEntityType>(this IQueryable<TEntityType> source, Expression<Func<TEntityType, bool>> expression)
         {
@@ -131,7 +132,7 @@ namespace System.Linq
             return data;
         }
 
-        public static T? GetById<T>(this IQueryable<T> query, string id) where T : class, IHasId
+        public static T? GetById<T>(this IQueryable<T> query, string id) where T : Entity
         {
             return query?.FirstOrDefault(x => x.Id == id);
         }

@@ -17,9 +17,9 @@ using MongoDB.Bson.Serialization.Serializers;
 namespace Geex.Common.Abstraction.Bson
 {
 
-    public class EnumerationSerializer<TEnum, TValue> :
+    public class EnumerationSerializer<TEnum> :
         ClassSerializerBase<TEnum>,
-        IRepresentationConfigurable, IEnumerationSerializer where TEnum : Enumeration<TEnum, TValue> where TValue : IEquatable<TValue>, IComparable<TValue>
+        IRepresentationConfigurable, IEnumerationSerializer where TEnum : Enumeration<TEnum>
     {
         private readonly BsonType _representation = BsonType.String;
         private readonly TypeCode _underlyingTypeCode;
@@ -34,10 +34,6 @@ namespace Geex.Common.Abstraction.Bson
         /// <param name="representation">The representation.</param>
         public EnumerationSerializer(BsonType representation = BsonType.String)
         {
-            if (typeof(TValue) != typeof(string))
-            {
-                throw new NotSupportedException("todo, 暂时只支持string");
-            }
             if (representation <= BsonType.String)
             {
                 if (representation == BsonType.EndOfDocument || representation == BsonType.String)
@@ -50,12 +46,12 @@ namespace Geex.Common.Abstraction.Bson
             if (!typeof(TEnum).IsClassEnum())
                 throw new BsonSerializationException(string.Format("{0} is not an class enum type.", (object)typeof(TEnum).FullName));
             this._representation = representation;
-            this._underlyingTypeCode = Type.GetTypeCode(typeof(TEnum).GetClassEnumValueType());
+            this._underlyingTypeCode = Type.GetTypeCode(typeof(string));
         }
 
         public IBsonSerializer WithRepresentation(BsonType representation)
         {
-            return representation == this._representation ? this : new EnumerationSerializer<TEnum, TValue>(representation);
+            return representation == this._representation ? this : new EnumerationSerializer<TEnum>(representation);
         }
 
         /// <summary>Gets the representation.</summary>
@@ -90,7 +86,7 @@ namespace Geex.Common.Abstraction.Bson
                 default:
                     throw this.CreateCannotDeserializeFromBsonTypeException(currentBsonType);
             }
-            var result = typeof(Enumeration<,>).MakeGenericType(typeof(TEnum), typeof(TValue)).GetMethod(nameof(Enumeration.FromValue), types: new[] { typeof(TValue) })?.Invoke(null, new[] { data }) as TEnum;
+            var result = typeof(Enumeration<>).MakeGenericType(typeof(TEnum)).GetMethod(nameof(Enumeration.FromValue), types: new[] { typeof(string) })?.Invoke(null, new[] { data }) as TEnum;
             return result;
         }
 

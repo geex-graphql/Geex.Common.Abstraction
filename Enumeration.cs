@@ -15,7 +15,7 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace Geex.Common.Abstractions
 {
-    public sealed class Enumeration : Enumeration<Enumeration, string>
+    public sealed class Enumeration : Enumeration<IEnumeration>
     {
         public Enumeration([NotNull] string name, string value) : base(name, value)
         {
@@ -29,19 +29,15 @@ namespace Geex.Common.Abstractions
     /// A base type to use for creating smart enums.
     /// </summary>
     /// <typeparam name="TEnum">The type that is inheriting from this class.</typeparam>
-    /// <typeparam name="TValue">The type of the inner value.</typeparam>
+    /// <typeparam name="string">The type of the inner value.</typeparam>
     /// <remarks></remarks>
-    public abstract class Enumeration<TEnum, TValue> :
-        ValueObject<Enumeration<TEnum, TValue>>,
+    public abstract class Enumeration<TEnum> :
+        ValueObject<Enumeration<TEnum>>,
         IEnumeration,
-        IEquatable<Enumeration<TEnum, TValue>>,
-        IComparable<Enumeration<TEnum, TValue>>
-        where TEnum : Enumeration<TEnum, TValue>
-        where TValue : IEquatable<TValue>, IComparable<TValue>
+        IEquatable<Enumeration<TEnum>>,
+        IComparable<Enumeration<TEnum>>
+        where TEnum : IEnumeration
     {
-        public Enumeration() : base((x) => x.Name, x => x.Value)
-        {
-        }
         public static List<TEnum> DynamicValues => GetAllOptions().ToList();
         static readonly Lazy<Dictionary<string, TEnum>> _fromName =
             new Lazy<Dictionary<string, TEnum>>(() => GetAllOptions().ToDictionary(item => item.Name));
@@ -49,15 +45,15 @@ namespace Geex.Common.Abstractions
         static readonly Lazy<Dictionary<string, TEnum>> _fromNameIgnoreCase =
             new Lazy<Dictionary<string, TEnum>>(() => GetAllOptions().ToDictionary(item => item.Name, StringComparer.OrdinalIgnoreCase));
 
-        static readonly Lazy<Dictionary<TValue, TEnum>> _fromValue =
-            new Lazy<Dictionary<TValue, TEnum>>(() =>
+        static readonly Lazy<Dictionary<string, TEnum>> _fromValue =
+            new Lazy<Dictionary<string, TEnum>>(() =>
             {
                 // multiple enums with same value are allowed but store only one per value
-                var dictionary = new Dictionary<TValue, TEnum>();
+                var dictionary = new Dictionary<string, TEnum>();
                 foreach (var item in GetAllOptions())
                 {
-                    if (!dictionary.ContainsKey(item._value))
-                        dictionary.Add(item._value, item);
+                    if (!dictionary.ContainsKey(item.Value))
+                        dictionary.Add(item.Value, item);
                 }
                 return dictionary;
             });
@@ -78,6 +74,11 @@ namespace Geex.Common.Abstractions
                 //    typeEnumOptions.AddRange(dynamicOptions);
                 //}
                 options.AddRange(typeEnumOptions);
+                foreach (var enumOption in typeEnumOptions)
+                {
+                    IEnumeration.ValueCacheDictionary.TryAdd($"{typeof(TEnum).Name}.{enumOption.Name}", enumOption);
+                }
+
             }
 
             return options.OrderBy(t => t.Name).ToList();
@@ -87,7 +88,7 @@ namespace Geex.Common.Abstractions
         {
             foreach (var (@case, action) in cases)
             {
-                if (@case != this)
+                if (@case.Value != this.Value)
                 {
                     continue;
                 }
@@ -118,7 +119,7 @@ namespace Geex.Common.Abstractions
                 .AsReadOnly();
 
         private readonly string _name;
-        private readonly TValue _value;
+        private readonly string _value;
 
         /// <summary>
         /// Gets the name.
@@ -130,14 +131,16 @@ namespace Geex.Common.Abstractions
         /// <summary>
         /// Gets the value.
         /// </summary>
-        /// <value>A <typeparamref name="TValue"/> that is the value of the <see cref="Enumeration{TEnum}"/>.</value>
-        public TValue Value =>
+        /// <value>A <typeparamref name="string"/> that is the value of the <see cref="Enumeration{TEnum}"/>.</value>
+        public string Value =>
             _value;
 
-        protected Enumeration(string name, TValue value)
+        string IEnumeration.Value => this.Value;
+
+        protected Enumeration(string name, string value) : base((x) => x.Name, x => x.Value)
         {
             if (String.IsNullOrEmpty(name))
-                throw new ArgumentNullException(nameof(name));
+                throw new InvalidOperationException("simple enum value must have a equation of string.");
             if (value == null)
                 throw new ArgumentNullException(nameof(value));
 
@@ -149,10 +152,9 @@ namespace Geex.Common.Abstractions
         /// construct a enum with name of value.ToString()
         /// </summary>
         /// <param name="value"></param>
-        protected Enumeration(TValue value)
+        protected Enumeration(string value) : this(value?.ToString(), value)
         {
-            _name = value.ToString() ?? throw new InvalidOperationException("simple enum value must have a equation of string.");
-            _value = value;
+
         }
 
         /// <summary>
@@ -160,7 +162,7 @@ namespace Geex.Common.Abstractions
         /// </summary>
         /// <value>A <see name="System.Type"/> that is the type of the value of the <see cref="Enumeration{TEnum}"/>.</value>
         public Type GetValueType() =>
-            typeof(TValue);
+            typeof(string);
 
         /// <summary>
         /// Gets the item associated with the specified name.
@@ -249,9 +251,9 @@ namespace Geex.Common.Abstractions
         /// If the specified value is not found, throws a <see cref="KeyNotFoundException"/>.
         /// </returns>
         /// <exception cref="SmartEnumNotFoundException"><paramref name="value"/> does not exist.</exception>
-        /// <seealso cref="Enumeration{TEnum}.FromValue(TValue, TEnum)"/>
-        /// <seealso cref="Enumeration{TEnum}.TryFromValue(TValue, out TEnum)"/>
-        public static TEnum FromValue(TValue value)
+        /// <seealso cref="Enumeration{TEnum}.FromValue(string, TEnum)"/>
+        /// <seealso cref="Enumeration{TEnum}.TryFromValue(string, out TEnum)"/>
+        public static TEnum FromValue(string value)
         {
             if (value == null)
                 throw new ArgumentNullException(nameof(value));
@@ -272,9 +274,9 @@ namespace Geex.Common.Abstractions
         /// The first item found that is associated with the specified value.
         /// If the specified value is not found, returns <paramref name="defaultValue"/>.
         /// </returns>
-        /// <seealso cref="Enumeration{TEnum}.FromValue(TValue)"/>
-        /// <seealso cref="Enumeration{TEnum}.TryFromValue(TValue, out TEnum)"/>
-        public static TEnum FromValue(TValue value, TEnum defaultValue)
+        /// <seealso cref="Enumeration{TEnum}.FromValue(string)"/>
+        /// <seealso cref="Enumeration{TEnum}.TryFromValue(string, out TEnum)"/>
+        public static TEnum FromValue(string value, TEnum defaultValue)
         {
             if (value == null)
                 throw new ArgumentNullException(nameof(value));
@@ -296,9 +298,9 @@ namespace Geex.Common.Abstractions
         /// <returns>
         /// <c>true</c> if the <see cref="Enumeration{TEnum}"/> contains an item with the specified name; otherwise, <c>false</c>.
         /// </returns>
-        /// <seealso cref="Enumeration{TEnum}.FromValue(TValue)"/>
-        /// <seealso cref="Enumeration{TEnum}.FromValue(TValue, TEnum)"/>
-        public static bool TryFromValue(TValue value, out TEnum result)
+        /// <seealso cref="Enumeration{TEnum}.FromValue(string)"/>
+        /// <seealso cref="Enumeration{TEnum}.FromValue(string, TEnum)"/>
+        public static bool TryFromValue(string value, out TEnum result)
         {
             if (value == null)
             {
@@ -322,14 +324,14 @@ namespace Geex.Common.Abstractions
         /// <param name="obj"></param>
         /// <returns></returns>
         public override bool Equals(object obj) =>
-            (obj is Enumeration<TEnum, TValue> other) && Equals(other);
+            (obj is Enumeration<TEnum> other) && Equals(other);
 
         /// <summary>
         /// Returns a value indicating whether this instance is equal to a specified <see cref="Enumeration{TEnum}"/> value.
         /// </summary>
         /// <param name="other">An <see cref="Enumeration{TEnum}"/> value to compare to this instance.</param>
         /// <returns><c>true</c> if <paramref name="other"/> has the same value as this instance; otherwise, <c>false</c>.</returns>
-        public virtual bool Equals(Enumeration<TEnum, TValue> other)
+        public virtual bool Equals(Enumeration<TEnum> other)
         {
             // check if same instance
             if (Object.ReferenceEquals(this, other))
@@ -343,7 +345,7 @@ namespace Geex.Common.Abstractions
             return _value.Equals(other._value);
         }
 
-        public static bool operator ==(Enumeration<TEnum, TValue> left, Enumeration<TEnum, TValue>? right)
+        public static bool operator ==(Enumeration<TEnum> left, Enumeration<TEnum>? right)
         {
             // Handle null on left side
             if (left is null)
@@ -354,7 +356,7 @@ namespace Geex.Common.Abstractions
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator !=(Enumeration<TEnum, TValue>? left, Enumeration<TEnum, TValue>? right) =>
+        public static bool operator !=(Enumeration<TEnum>? left, Enumeration<TEnum>? right) =>
             !(left == right);
 
         /// <summary>
@@ -363,47 +365,44 @@ namespace Geex.Common.Abstractions
         /// <param name="other">An <see cref="Enumeration{TEnum}"/> value to compare to this instance.</param>
         /// <returns>A signed number indicating the relative values of this instance and <paramref name="other"/>.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public virtual int CompareTo(Enumeration<TEnum, TValue> other) =>
+        public virtual int CompareTo(Enumeration<TEnum> other) =>
             _value.CompareTo(other._value);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator <(Enumeration<TEnum, TValue> left, Enumeration<TEnum, TValue> right) =>
+        public static bool operator <(Enumeration<TEnum> left, Enumeration<TEnum> right) =>
             left.CompareTo(right) < 0;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator <=(Enumeration<TEnum, TValue> left, Enumeration<TEnum, TValue> right) =>
+        public static bool operator <=(Enumeration<TEnum> left, Enumeration<TEnum> right) =>
             left.CompareTo(right) <= 0;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >(Enumeration<TEnum, TValue> left, Enumeration<TEnum, TValue> right) =>
+        public static bool operator >(Enumeration<TEnum> left, Enumeration<TEnum> right) =>
             left.CompareTo(right) > 0;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool operator >=(Enumeration<TEnum, TValue> left, Enumeration<TEnum, TValue> right) =>
+        public static bool operator >=(Enumeration<TEnum> left, Enumeration<TEnum> right) =>
             left.CompareTo(right) >= 0;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator TValue(Enumeration<TEnum, TValue> enumeration) =>
+        public static implicit operator string(Enumeration<TEnum> enumeration) =>
             enumeration._value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static explicit operator Enumeration<TEnum, TValue>(TValue value) =>
-            FromValue(value);
+        public static explicit operator Enumeration<TEnum>(string value) =>
+            FromValue(value) as Enumeration<TEnum>;
     }
 
 
     public interface IEnumeration
     {
+        public static Dictionary<string, IEnumeration> ValueCacheDictionary = new Dictionary<string, IEnumeration>();
+        public string Name { get; }
+        public string Value { get; }
     }
 
     public static class EnumerationExtensions
     {
-
-        public static Type GetClassEnumValueType(this Type type)
-        {
-            return type.GetBaseClasses(false).First(x => x.IsAssignableTo<IEnumeration>()).GenericTypeArguments[1];
-        }
-
         public static IEnumerable<Type> GetClassEnumBases(this Type classEnumType)
         {
             return classEnumType.GetBaseClasses().Where(x => !x.IsGenericType && x.IsAssignableTo<IEnumeration>());

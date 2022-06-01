@@ -79,7 +79,7 @@ namespace Geex.Common.Abstraction.Auditing
                 this.AuditRemark = remark;
                 (this as Entity)?.AddDomainEvent(new EntityUnsubmittedNotification<TEntity>(this));
             }
-            else if(this.AuditStatus == AuditStatus.Audited)
+            else if (this.AuditStatus == AuditStatus.Audited)
             {
                 throw new BusinessException(GeexExceptionType.ValidationFailed, message: "已审核，无法取消上报.");
             }
@@ -90,11 +90,18 @@ namespace Geex.Common.Abstraction.Auditing
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="remark"></param>
         /// <returns></returns>
-        async Task UnAudit<TEntity>(string? remark = default)
+        async Task UnAudit<TEntity>(string? remark = default, bool backToSubmited = false)
         {
             if (this.AuditStatus == AuditStatus.Audited)
             {
-                this.AuditStatus ^= AuditStatus.Audited;
+                if (backToSubmited)
+                {
+                    this.AuditStatus = AuditStatus.Submitted;
+                }
+                else
+                {
+                    this.AuditStatus ^= AuditStatus.Audited;
+                }
                 this.AuditRemark = remark;
                 (this as Entity)?.AddDomainEvent(new EntityUnauditedNotification<TEntity>(this));
             }

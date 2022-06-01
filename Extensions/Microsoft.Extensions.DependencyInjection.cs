@@ -154,7 +154,7 @@ namespace Microsoft.Extensions.DependencyInjection
                                 {
                                     x.BindRuntimeType(classEnumType, typeof(ClassEnumOperationFilterInput<>).MakeGenericType(classEnumType));
                                 }));
-                                builder.BindRuntimeType(classEnumType, typeof(EnumerationType<,>).MakeGenericType(classEnumType, classEnumType.GetClassEnumValueType()));
+                                builder.BindRuntimeType(classEnumType, typeof(EnumerationType<>).MakeGenericType(classEnumType));
                             }
                         });
                 }

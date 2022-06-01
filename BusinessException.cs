@@ -46,7 +46,7 @@ namespace Geex.Common.Abstractions
     /// <summary>
     /// inherit this enumeration to customise your own business exceptions
     /// </summary>
-    public class GeexExceptionType : Enumeration<GeexExceptionType, string>
+    public class GeexExceptionType : Enumeration<GeexExceptionType>
     {
         protected GeexExceptionType(string name, string code, string defaultLogMessage, LogLevel logLevel = LogLevel.Warning) : base(name, code)
         {

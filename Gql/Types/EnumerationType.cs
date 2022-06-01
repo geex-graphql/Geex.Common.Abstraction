@@ -11,8 +11,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace Geex.Common.Gql.Types
 {
-    public class EnumerationType<TEnum, TValue> : EnumType<TEnum> where TEnum : class, IEnumeration
-        where TValue : IEquatable<TValue>, IComparable<TValue>
+    public class EnumerationType<TEnum> : EnumType<TEnum> where TEnum : class, IEnumeration
     {
         protected override EnumTypeDefinition CreateDefinition(ITypeDiscoveryContext context)
         {

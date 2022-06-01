@@ -12,6 +12,8 @@ namespace Geex.Common.Gql
 {
     public class GeexTypeInspector : DefaultTypeInspector
     {
+        public Dictionary<Type, IExtendedType> KnownTypes { get; } = new();
+
         protected override void Initialize(IConventionContext context)
         {
             base.Initialize(context);
@@ -20,11 +22,21 @@ namespace Geex.Common.Gql
         /// <inheritdoc />
         public override IExtendedType GetReturnType(MemberInfo member, bool ignoreAttributes = false)
         {
-            if (member is PropertyInfo property && property.PropertyType.Name == "ResettableLazy`1")
+            IExtendedType result;
+            if (member is PropertyInfo property && property.PropertyType.Name is "ResettableLazy`1" or "Lazy`1")
             {
-                return base.GetType(property.PropertyType.GenericTypeArguments[0]);
+                result = base.GetType(property.PropertyType.GenericTypeArguments[0]);
             }
-            return base.GetReturnType(member, ignoreAttributes);
+            else
+            {
+                result = base.GetReturnType(member, ignoreAttributes);
+            }
+
+            if (member.DeclaringType != null)
+            {
+                this.KnownTypes[member.DeclaringType] = result;
+            }
+            return result;
         }
 
         public override IEnumerable<MemberInfo> GetMembers(Type type)
@@ -44,7 +56,7 @@ namespace Geex.Common.Gql
 
             if (enumType.IsAssignableTo<IEnumeration>())
             {
-                var genericImplementation = enumType.GetBaseClasses().FirstOrDefault(x => x.Name == (typeof(Enumeration<,>).Name));
+                var genericImplementation = enumType.GetBaseClasses().FirstOrDefault(x => x.Name == (typeof(Enumeration<>).Name));
                 var values = ((System.Collections.IEnumerable)genericImplementation?.GetProperty(nameof(Enumeration.List))?.GetValue(null)).Cast<object>().Where(x => x.GetType().IsAssignableTo(enumType));
                 if (!values.Any())
                 {

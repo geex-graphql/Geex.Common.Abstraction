@@ -5,7 +5,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Geex.Common.Abstraction
+// ReSharper disable once CheckNamespace
+namespace System
 {
     public class ResettableLazy<T>
     {

@@ -38,9 +38,14 @@ namespace System
                 return method.Invoke(lazy, Array.Empty<object>());
             }
             var lazyType = lazy.GetType();
-            method = lazyType.GetProperty(nameof(ResettableLazy<object>.Value))!.GetMethod!;
+            method = lazyType.GetProperty(nameof(Lazy<object>.Value))!.GetMethod!;
             LazyGetterCache.Add(valueType, method);
             return method.Invoke(lazy, Array.Empty<object>());
         }
+
+		public static string ToShortDateString(this DateTimeOffset value)
+		{
+			return value.ToLocalTime().ToString("yyyy-MM-dd");
+		}
     }
 }

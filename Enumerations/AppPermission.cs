@@ -11,7 +11,7 @@ using Humanizer;
 
 namespace Geex.Common.Authorization
 {
-    public class AppPermission : Enumeration<AppPermission, string>
+    public class AppPermission : Enumeration<AppPermission>
     {
         public AppPermission(string value) : base(value)
         {

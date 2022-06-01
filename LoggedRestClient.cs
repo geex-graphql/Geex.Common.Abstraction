@@ -7,13 +7,13 @@ using Microsoft.Extensions.Logging;
 
 using RestSharp;
 
-namespace Kuanfang.Fms.Shared
+namespace Geex.Common.Abstraction
 {
     public class LoggedRestClient : RestClient
     {
-        private readonly ILogger<LoggedRestClient> _logger;
+        private readonly ILogger _logger;
 
-        public LoggedRestClient(ILogger<LoggedRestClient> logger)
+        public LoggedRestClient(ILogger logger)
         {
             _logger = logger;
         }

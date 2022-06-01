@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 
 namespace Geex.Common.Abstraction;
 
-public class LoginProviderEnum : Enumeration<LoginProviderEnum, string>
+public class LoginProviderEnum : Enumeration<LoginProviderEnum>
 {
     public static LoginProviderEnum Local { get; } = new LoginProviderEnum(LoginProviderEnum._Local);
     public const string _Local = nameof(Local);

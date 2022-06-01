@@ -38,7 +38,10 @@ namespace Geex.Common.Abstraction.Storage
         /// <param name="sp">依赖注入器, 等价于this.ServiceProvider</param>
         /// <returns>A collection that holds failed-validation information.</returns>
         [GraphQLIgnore]
-        public abstract Task<ValidationResult> Validate(IServiceProvider sp, CancellationToken cancellation = default);
+        public virtual Task<ValidationResult> Validate(IServiceProvider sp, CancellationToken cancellation = default)
+        {
+            return Task.FromResult(ValidationResult.Success);
+        }
 
 
         /// <summary>

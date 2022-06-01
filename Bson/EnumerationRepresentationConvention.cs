@@ -17,7 +17,7 @@ namespace Geex.Common.Abstraction.Bson
         {
             if (memberMap.MemberType.IsAssignableTo<IEnumeration>())
             {
-                var serializerType = typeof(EnumerationSerializer<,>).MakeGenericType(memberMap.MemberType, memberMap.MemberType.GetClassEnumValueType());
+                var serializerType = typeof(EnumerationSerializer<>).MakeGenericType(memberMap.MemberType);
                 var serializer = Activator.CreateInstance(serializerType);
                 memberMap.SetSerializer(serializer as IBsonSerializer);
             }

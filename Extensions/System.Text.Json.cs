@@ -71,16 +71,20 @@ namespace System.Text.Json
         {
             return JsonSerializer.Deserialize(@this, type, DefaultSerializeSettings);
         }
+
+        public static T? ToObject<T>(this string @this, T typeHint)
+        {
+            return JsonSerializer.Deserialize<T>(@this, DefaultSerializeSettings);
+        }
     }
 
     public class EnumerationConverter<T> : JsonConverter<T> where T : class
     {
         private static Type classEnumRealType = typeof(T).GetClassEnumRealType();
-        private static Type classEnumValueType = typeof(T).GetClassEnumValueType();
         public override T? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             var data = reader.GetString();
-            return typeof(Enumeration<,>).MakeGenericType(classEnumRealType, classEnumValueType).GetMethod(nameof(Enumeration.FromValue), types: new[] { classEnumValueType })?.Invoke(null, new[] { data }) as T;
+            return typeof(Enumeration<>).MakeGenericType(classEnumRealType).GetMethod(nameof(Enumeration.FromValue), types: new[] { typeof(string) })?.Invoke(null, new[] { data }) as T;
         }
 
         public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)

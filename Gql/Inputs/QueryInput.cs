@@ -25,7 +25,7 @@ namespace Geex.Common.Abstraction.Gql.Inputs
                 throw new Exception("id 列表查询仅支持 IHasId");
             }
 
-            this.Filter = x => ids.Contains(((IHasId)x).Id);
+            //this.Filter = x => ids.Contains(((IHasId)x).Id);
             this.Ids = ids;
         }
         [GraphQLIgnore]
