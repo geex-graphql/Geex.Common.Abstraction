@@ -81,10 +81,7 @@ namespace Geex.Common.Abstraction
         #endregion
 
         #region TotalItemCount
-
         public int TotalCount => _totalCount ??= DataSource.Count();
-
-        int IPagedList.TotalCount { get; }
         #endregion
     }
 }

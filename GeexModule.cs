@@ -36,7 +36,8 @@ namespace Geex.Common.Abstractions
 {
     public abstract class GeexModule<TModule, TModuleOptions> : GeexModule<TModule> where TModule : GeexModule where TModuleOptions : IGeexModuleOption<TModule>
     {
-        protected new TModuleOptions ModuleOptions => this.ServiceConfigurationContext.Services.GetSingletonInstance<TModuleOptions>();
+        private TModuleOptions _moduleOptions;
+        protected new TModuleOptions ModuleOptions => this._moduleOptions ??= this.ServiceConfigurationContext.Services.GetSingletonInstance<TModuleOptions>();
     }
     public abstract class GeexModule<TModule> : GeexModule where TModule : GeexModule
     {
@@ -108,20 +109,7 @@ namespace Geex.Common.Abstractions
         {
             var env = context.Services.GetSingletonInstance<IWebHostEnvironment>();
             context.Services.AddWebSockets(x => { });
-            context.Services.AddCors(options =>
-            {
-                var corsRegex = Configuration.GetValue<string>("CorsRegex");
-                if (corsRegex.IsNullOrEmpty())
-                {
-                    options.AddDefaultPolicy(x =>
-                        x.SetIsOriginAllowed(x => true).AllowAnyHeader().AllowAnyMethod().AllowCredentials());
-                }
-                else
-                {
-                    var regex = new Regex(corsRegex, RegexOptions.Compiled);
-                    options.AddDefaultPolicy(x => x.SetIsOriginAllowed(origin => regex.Match(origin).Success).AllowAnyHeader().AllowAnyMethod().AllowCredentials());
-                }
-            });
+
             base.ConfigureServices(context);
             this.SchemaBuilder.ConfigExtensionTypes();
         }
@@ -131,8 +119,11 @@ namespace Geex.Common.Abstractions
             var app = context.GetApplicationBuilder();
             //var _env = context.GetEnvironment();
             //var _configuration = context.GetConfiguration();
-            app.UseEndpoints(endpoints => endpoints.MapGraphQL());
-            app.UseEndpoints(endpoints => endpoints.MapHealthChecks("/health-check"));
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapHealthChecks("/health-check");
+                endpoints.MapGraphQL();
+            });
 
             app.UseVoyager("/graphql", "/voyager");
 

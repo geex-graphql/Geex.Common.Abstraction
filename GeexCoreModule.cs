@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using Geex.Common.Abstraction;
@@ -36,6 +37,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.WebSockets;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -67,6 +69,28 @@ namespace Geex.Common
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var moduleOptions = this.ModuleOptions;
+            context.Services.AddCors(options =>
+            {
+                if (this.Env.IsDevelopment())
+                {
+                    options.AddDefaultPolicy(x =>
+                        x.SetIsOriginAllowed(x => true).AllowAnyHeader().AllowAnyMethod().AllowCredentials());
+                }
+                else
+                {
+                    var corsRegex = moduleOptions.CorsRegex;
+                    if (!corsRegex.IsNullOrEmpty())
+                    {
+                        var regex = new Regex(corsRegex, RegexOptions.Compiled);
+                        options.AddDefaultPolicy(x => x.SetIsOriginAllowed(origin => regex.Match(origin).Success).AllowAnyHeader().AllowAnyMethod().AllowCredentials());
+                    }
+                    else
+                    {
+                        options.AddDefaultPolicy(x =>
+                        x.SetIsOriginAllowed(x => true).AllowAnyHeader().AllowAnyMethod().AllowCredentials());
+                    }
+                }
+            });
             context.Services.AddStorage();
             var schemaBuilder = context.Services.AddGraphQLServer();
             if (moduleOptions.Redis != default)

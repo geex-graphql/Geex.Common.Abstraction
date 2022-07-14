@@ -36,7 +36,7 @@ namespace Geex.Common.Abstraction.Storage
 
         public override bool IsTypeMatch(Type type1, Type type2)
         {
-            return type1.IsAssignableTo<IEnumeration>() || type2.IsAssignableTo<IEnumeration>();
+            return type1?.IsAssignableTo<IEnumeration>() == true || type2?.IsAssignableTo<IEnumeration>() == true;
         }
     }
 }
