@@ -23,6 +23,11 @@ namespace System.Security.Claims
             return principal.Identity?.FindUserId();
         }
 
+        public static string? FindClientId(this ClaimsPrincipal principal)
+        {
+            return principal.Identity?.FindClientId();
+        }
+
         public static string[]? FindOrgCodes(this ClaimsPrincipal principal)
         {
             Check.NotNull(principal, nameof(principal));
@@ -51,6 +56,25 @@ namespace System.Security.Claims
             return claim?.Value;
         }
 
+        public static string? FindClientId(this IIdentity identity)
+        {
+            Check.NotNull(identity, nameof(identity));
+            Claim? claim;
+            if (!(identity is ClaimsIdentity claimsIdentity))
+            {
+                claim = null;
+            }
+            else
+            {
+                IEnumerable<Claim> claims = claimsIdentity.Claims;
+                claim = claims != null
+                    ? claims.FirstOrDefault((Func<Claim, bool>)(c => c.Type == GeexClaimType.ClientId))
+                    : null;
+            }
+
+            return claim?.Value;
+        }
+
         public static string? FindTenantCode(this IIdentity identity)
         {
             Check.NotNull(identity, nameof(identity));
@@ -73,37 +97,6 @@ namespace System.Security.Claims
         public static string? FindTenantCode(this ClaimsPrincipal principal)
         {
             return principal.Identity?.FindTenantCode();
-        }
-        public static string FindClientId(this ClaimsPrincipal principal)
-        {
-            throw new NotImplementedException();
-            //Check.NotNull(principal, nameof(principal));
-            //IEnumerable<Claim> claims = principal.Claims;
-            //Claim claim = claims != null
-            //    ? claims.FirstOrDefault((Func<Claim, bool>) (c => c.Type == GeexClaimType.ClientId))
-            //    : null;
-            //return claim == null || claim.Value.IsNullOrWhiteSpace() ? null : claim.Value;
-        }
-
-        public static string FindClientId(this IIdentity identity)
-        {
-            throw new NotImplementedException();
-            //Check.NotNull(identity, nameof(identity));
-            //Claim claim1;
-            //if (!(identity is ClaimsIdentity claimsIdentity))
-            //{
-            //    claim1 = null;
-            //}
-            //else
-            //{
-            //    IEnumerable<Claim> claims = claimsIdentity.Claims;
-            //    claim1 = claims != null
-            //        ? claims.FirstOrDefault((Func<Claim, bool>) (c => c.Type == GeexClaimType.ClientId))
-            //        : null;
-            //}
-
-            //Claim claim2 = claim1;
-            //return claim2 == null || claim2.Value.IsNullOrWhiteSpace() ? null : claim2.Value;
         }
 
         public static Guid? FindEditionId(this ClaimsPrincipal principal)

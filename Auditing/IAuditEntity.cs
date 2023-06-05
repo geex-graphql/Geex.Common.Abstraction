@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 
 using Geex.Common.Abstraction.Auditing.Events;
+using Geex.Common.Abstraction.Storage;
 using Geex.Common.Abstractions;
 
 using MediatR;
@@ -10,11 +11,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 using MongoDB.Entities;
 
-using Entity = Geex.Common.Abstraction.Storage.Entity;
-
 namespace Geex.Common.Abstraction.Auditing
 {
-    public interface IAuditEntity : IEntity
+    public interface IAuditEntity : IEntityBase
     {
         /// <summary>
         /// 对象审批状态
@@ -23,7 +22,7 @@ namespace Geex.Common.Abstraction.Auditing
         /// <summary>
         /// 审批操作备注文本
         /// </summary>
-        public string AuditRemark { get; set; }
+        public string? AuditRemark { get; set; }
         /// <summary>
         /// 上报
         /// </summary>
@@ -37,7 +36,7 @@ namespace Geex.Common.Abstraction.Auditing
             {
                 this.AuditStatus |= AuditStatus.Submitted;
                 this.AuditRemark = remark;
-                (this as Entity)?.AddDomainEvent(new EntitySubmittedNotification<TEntity>(this));
+                (this as IEntity)?.AddDomainEvent(new EntitySubmittedNotification<TEntity>(this));
             }
             else
             {
@@ -57,7 +56,7 @@ namespace Geex.Common.Abstraction.Auditing
             {
                 this.AuditStatus |= AuditStatus.Audited;
                 this.AuditRemark = remark;
-                (this as Entity)?.AddDomainEvent(new EntityAuditedNotification<TEntity>(this));
+                (this as IEntity)?.AddDomainEvent(new EntityAuditedNotification<TEntity>(this));
             }
             else
             {
@@ -77,7 +76,7 @@ namespace Geex.Common.Abstraction.Auditing
             {
                 this.AuditStatus ^= AuditStatus.Submitted;
                 this.AuditRemark = remark;
-                (this as Entity)?.AddDomainEvent(new EntityUnsubmittedNotification<TEntity>(this));
+                (this as IEntity)?.AddDomainEvent(new EntityUnsubmittedNotification<TEntity>(this));
             }
             else if (this.AuditStatus == AuditStatus.Audited)
             {
@@ -103,7 +102,7 @@ namespace Geex.Common.Abstraction.Auditing
                     this.AuditStatus ^= AuditStatus.Audited;
                 }
                 this.AuditRemark = remark;
-                (this as Entity)?.AddDomainEvent(new EntityUnauditedNotification<TEntity>(this));
+                (this as IEntity)?.AddDomainEvent(new EntityUnauditedNotification<TEntity>(this));
             }
         }
         /// <summary>

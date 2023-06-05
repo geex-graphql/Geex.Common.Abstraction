@@ -9,9 +9,9 @@ namespace Geex.Common
     internal class GeexFilterConvention : FilterConvention
     {
         /// <inheritdoc />
-        public override NameString GetTypeName(Type runtimeType)
+        public override string GetFieldName(MemberInfo member)
         {
-            return base.GetTypeName(runtimeType);
+            return base.GetFieldName(member);
         }
     }
 }

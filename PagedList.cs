@@ -15,7 +15,6 @@ namespace Geex.Common.Abstraction
             this.PageSize = input.PageSize;
         }
 
-        #region PageIndex
         private int _pageIndex = 1;
         protected virtual void SetPageIndex(int input)
         {
@@ -33,9 +32,7 @@ namespace Geex.Common.Abstraction
             private init => SetPageIndex(value);
         }
 
-        #endregion
 
-        #region PageSize
         private int _pageSize = 10;
         private int? _totalCount;
         private List<T>? _items;
@@ -54,9 +51,7 @@ namespace Geex.Common.Abstraction
         }
 
         public List<T> Items => _items ??= DataSource.Skip((PageIndex - 1) * PageSize).Take(PageSize).ToList();
-        #endregion
 
-        #region PageCount
         public int TotalPage
         {
             get
@@ -78,10 +73,7 @@ namespace Geex.Common.Abstraction
                 return pageCount;
             }
         }
-        #endregion
 
-        #region TotalItemCount
         public int TotalCount => _totalCount ??= DataSource.Count();
-        #endregion
     }
 }

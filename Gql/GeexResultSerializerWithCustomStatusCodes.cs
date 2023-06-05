@@ -14,7 +14,7 @@ using HotChocolate.Execution;
 
 namespace Geex.Common.Abstraction.Gql
 {
-    public class GeexResultSerializerWithCustomStatusCodes : DefaultHttpResultSerializer
+    public class GeexResultSerializerWithCustomStatusCodes : DefaultHttpResponseFormatter
     {
         private readonly LazyService<ClaimsPrincipal> _claimsPrincipalFactory;
 
@@ -22,11 +22,13 @@ namespace Geex.Common.Abstraction.Gql
         {
             _claimsPrincipalFactory = claimsPrincipalFactory;
         }
-        public override HttpStatusCode GetStatusCode(IExecutionResult result)
-        {
-            var baseStatusCode = base.GetStatusCode(result);
 
-            if (result is IQueryResult && result.Errors?.Count > 0)
+        /// <inheritdoc />
+        protected override HttpStatusCode OnDetermineStatusCode(IQueryResult result, FormatInfo format, HttpStatusCode? proposedStatusCode)
+        {
+            var baseStatusCode = base.OnDetermineStatusCode(result, format, proposedStatusCode);
+
+            if (result.Errors?.Count > 0)
             {
                 if (result.Errors.Any(e => e.Code == ErrorCodes.Authentication.NotAuthorized || e.Code == ErrorCodes.Authentication.NotAuthenticated))
                 {
@@ -45,5 +47,6 @@ namespace Geex.Common.Abstraction.Gql
 
             return baseStatusCode;
         }
+
     }
 }

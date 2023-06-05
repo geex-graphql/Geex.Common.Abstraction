@@ -9,7 +9,6 @@ using Geex.Common.Abstraction;
 using Geex.Common.Abstractions;
 
 using MongoDB.Entities;
-using Entity = Geex.Common.Abstraction.Storage.Entity;
 
 // ReSharper disable once CheckNamespace
 namespace System.Linq
@@ -132,7 +131,7 @@ namespace System.Linq
             return data;
         }
 
-        public static T? GetById<T>(this IQueryable<T> query, string id) where T : Entity
+        public static T? GetById<T>(this IQueryable<T> query, string id) where T : EntityBase<T>
         {
             return query?.FirstOrDefault(x => x.Id == id);
         }

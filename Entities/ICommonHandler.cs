@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Dynamic.Core;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -20,7 +20,7 @@ namespace Geex.Common.Abstraction.Entities
 {
     public interface ICommonHandler<TInterface, TEntity> :
         IRequestHandler<QueryInput<TInterface>, IQueryable<TInterface>>
-        where TInterface : IEntity where TEntity : TInterface
+        where TInterface : IEntityBase where TEntity : TInterface
     {
         public DbContext DbContext { get; }
 
@@ -28,7 +28,7 @@ namespace Geex.Common.Abstraction.Entities
         {
             if (request.Filter != default)
             {
-                return (IQueryable<TInterface>)DbContext.Queryable<TEntity>().Where(request.Filter.CastParamType<TEntity>());
+                return (IQueryable<TInterface>)DbContext.Queryable<TEntity>().Where(request.Filter.CastParamType<TEntity>().As<Expression<Func<TEntity, bool>>>());
             }
             return (IQueryable<TInterface>)DbContext.Queryable<TEntity>();
         }

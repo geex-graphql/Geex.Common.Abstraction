@@ -101,6 +101,9 @@ namespace Geex.Common.Abstractions
     {
         public IRequestExecutorBuilder SchemaBuilder => this.ServiceConfigurationContext.Services.GetSingletonInstance<IRequestExecutorBuilder>();
         public static HashSet<Assembly> KnownModuleAssembly { get; } = new HashSet<Assembly>();
+        public static HashSet<Type> RootTypes { get; } = new HashSet<Type>();
+        public static HashSet<Type> ClassEnumTypes { get; } = new HashSet<Type>();
+        public static HashSet<Type> DirectiveTypes { get; } = new HashSet<Type>();
     }
 
     public abstract class GeexEntryModule<T> : GeexModule<T> where T : GeexModule
@@ -119,15 +122,23 @@ namespace Geex.Common.Abstractions
             var app = context.GetApplicationBuilder();
             //var _env = context.GetEnvironment();
             //var _configuration = context.GetConfiguration();
+            var coreModuleOptions = context.ServiceProvider.GetService<GeexCoreModuleOptions>();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapHealthChecks("/health-check");
-                endpoints.MapGraphQL();
+                endpoints.MapGraphQL().WithOptions(new GraphQLServerOptions()
+                {
+                    EnableSchemaRequests = !coreModuleOptions.DisableIntrospection,
+                    EnableGetRequests = false,
+                    Tool =
+                    {
+                        Enable = !coreModuleOptions.DisableIntrospection,
+                    }
+                });
             });
 
             app.UseVoyager("/graphql", "/voyager");
 
-            var coreModuleOptions = context.ServiceProvider.GetService<GeexCoreModuleOptions>();
             if (coreModuleOptions.AutoMigration)
             {
                 context.ServiceProvider.GetService<DbContext>().MigrateAsync().Wait();

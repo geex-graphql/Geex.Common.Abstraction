@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Linq;
+
 using HotChocolate.Types;
 
 namespace Geex.Common.Abstraction.Gql.Directives
@@ -12,7 +13,7 @@ namespace Geex.Common.Abstraction.Gql.Directives
             descriptor.Name("first");
             descriptor.Location(DirectiveLocation.Field);
             descriptor.Argument("count").Type<IntType>().DefaultValue(1);
-            descriptor.Use(next => context =>
+            descriptor.Use((next, directive) => context =>
             {
                 var result = next.Invoke(context);
                 result.AsTask().Wait();

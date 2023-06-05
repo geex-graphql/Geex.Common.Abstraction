@@ -17,12 +17,12 @@ namespace MongoDB.Entities.Interceptors
         /// </summary>
         /// <param name="interceptors"></param>
         /// <returns></returns>
-        public static IServiceCollection AddSaveInterceptors(this IServiceCollection serviceCollection)
+        public static IServiceCollection AddDataInterceptors(this IServiceCollection serviceCollection)
         {
-            var interceptorTypes = serviceCollection.Where(x => x.ServiceType.IsAssignableTo<ISaveInterceptor>()).Select(x => x.ServiceType);
+            var interceptorTypes = serviceCollection.Where(x => x.ServiceType.IsAssignableTo<IDataInterceptor>()).Select(x => x.ServiceType);
             foreach (var interceptorType in interceptorTypes)
             {
-                DbContext.StaticSaveInterceptors.TryAdd(interceptorType.GenericTypeArguments[0], sp => sp.GetService(interceptorType).As<ISaveInterceptor>());
+                DbContext.StaticDataInterceptors.TryAdd(interceptorType.GenericTypeArguments[0], sp => sp.GetService(interceptorType).As<IDataInterceptor>());
             }
             return serviceCollection;
         }

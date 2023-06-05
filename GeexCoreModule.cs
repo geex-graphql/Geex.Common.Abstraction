@@ -10,6 +10,7 @@ using Geex.Common.Abstraction;
 using Geex.Common.Abstraction.Auditing;
 using Geex.Common.Abstraction.Bson;
 using Geex.Common.Abstraction.Gql;
+using Geex.Common.Abstraction.Gql.Types;
 using Geex.Common.Abstractions;
 using Geex.Common.Gql;
 using Geex.Common.Gql.Types;
@@ -41,6 +42,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
 
 using MongoDB.Bson;
@@ -92,15 +94,24 @@ namespace Geex.Common
                 }
             });
             context.Services.AddStorage();
-            var schemaBuilder = context.Services.AddGraphQLServer();
+            var schemaBuilder = context.Services
+                .AddGraphQLServer()
+                .AllowIntrospection(!moduleOptions.DisableIntrospection);
             if (moduleOptions.Redis != default)
             {
                 context.Services.AddStackExchangeRedisExtensions();
             }
-            context.Services.AddInMemorySubscriptions();
             context.Services.AddSingleton(schemaBuilder);
             context.Services.AddHttpResultSerializer(x => new GeexResultSerializerWithCustomStatusCodes(new LazyService<ClaimsPrincipal>(x)));
+            IReadOnlySchemaOptions capturedSchemaOptions = default;
             schemaBuilder.AddConvention<ITypeInspector>(typeof(GeexTypeInspector))
+                .ModifyOptions(opt => capturedSchemaOptions = opt)
+    .AddConvention<INamingConventions>(sp => new GeexNamingConventions(
+        new XmlDocumentationProvider(
+            new XmlDocumentationFileResolver(
+                capturedSchemaOptions.ResolveXmlDocumentationFileName),
+            sp.GetApplicationService<ObjectPool<StringBuilder>>())))
+                .TryAddTypeInterceptor<GeexTypeInterceptor>()
                 .AddTypeConverter((Type source, Type target, out ChangeType? converter) =>
                 {
                     converter = o => o;
@@ -119,15 +130,16 @@ namespace Geex.Common
                 })
                 .AddErrorFilter<LoggingErrorFilter>(_ =>
                     new LoggingErrorFilter(_.GetService<ILoggerProvider>()))
+                .AddInMemorySubscriptions()
                 .AddValidationVisitor<ExtraArgsTolerantValidationVisitor>()
                 .AddTransactionScopeHandler<GeexTransactionScopeHandler>()
                 .AddFiltering()
                 .AddConvention<IFilterConvention>(new FilterConventionExtension(x => x.Provider(new GeexQueryablePostFilterProvider(y => y.AddDefaultFieldHandlers()))))
                 .AddSorting()
                 .AddProjections()
-                .AddQueryType(x => x.Field("_").Type<StringType>().Resolve(x => null))
-                .AddMutationType(x => x.Field("_").Type<StringType>().Resolve(x => null))
-                .AddSubscriptionType(x => x.Field("_").Type<StringType>().Resolve(x => null))
+                .AddQueryType<Query>(x => x.Field("_").Type<StringType>().Resolve(x => null))
+                .AddMutationType<Mutation>(x => x.Field("_").Type<StringType>().Resolve(x => null))
+                .AddSubscriptionType<Subscription>(x => x.Field("_").Type<StringType>().Resolve(x => null))
                 .AddCommonTypes()
                 //.AddMutationConventions(new MutationConventionOptions()
                 //{
@@ -161,7 +173,7 @@ namespace Geex.Common
         public override void PostConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddDataFilters();
-            context.Services.AddSaveInterceptors();
+            context.Services.AddDataInterceptors();
             base.PostConfigureServices(context);
         }
 

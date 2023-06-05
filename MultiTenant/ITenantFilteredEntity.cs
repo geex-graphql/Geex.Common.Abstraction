@@ -14,12 +14,12 @@ namespace Geex.Common.Abstraction.MultiTenant
     /// <summary>
     /// 租户过滤标记接口, 被标记的实体将默认参与租户过滤
     /// </summary>
-    public interface ITenantFilteredEntity : ISaveIntercepted, IEntity
+    public interface ITenantFilteredEntity : IIntercepted, IEntityBase
     {
         /// <summary>
         /// 租户编码, 为null时为宿主数据
         /// </summary>
-        string? TenantCode { get; [Obsolete(message: "框架会自动维护租户编码, 请勿直接set.", error: true)] set; }
+        public string? TenantCode { get; [Obsolete(message: "框架会自动维护租户编码, 请勿直接set.", error: true)] set; }
 
         /// <summary>
         /// 设置租户信息<br/>

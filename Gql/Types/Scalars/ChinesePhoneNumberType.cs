@@ -10,11 +10,11 @@ namespace Geex.Common.Gql.Types.Scalars
         private const string _validationPattern = "^[1]([3-9])[0-9]{9}$";
 
         public ChinesePhoneNumberType()
-          : this((NameString)"ChinesePhoneNumberType", @"^\[1\]\(\[3-9\]\)[0-9]{9}$")
+          : this((string)"ChinesePhoneNumberType", @"^\[1\]\(\[3-9\]\)[0-9]{9}$")
         {
         }
 
-        public ChinesePhoneNumberType(NameString name, string? description = null, BindingBehavior bind = BindingBehavior.Explicit)
+        public ChinesePhoneNumberType(string name, string? description = null, BindingBehavior bind = BindingBehavior.Explicit)
           : base(name, _validationPattern, description, RegexOptions.IgnoreCase | RegexOptions.Compiled, bind)
         {
         }

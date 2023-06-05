@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,23 +12,28 @@ using MongoDB.Entities;
 
 using Volo.Abp.DependencyInjection;
 
+using static Humanizer.On;
+
 namespace Geex.Common.Abstraction
 {
     [Dependency(ServiceLifetime.Transient)]
     [ExposeServices(typeof(IEntityMapConfig))]
-    public abstract class EntityMapConfig<TEntity> : IEntityMapConfig where TEntity : IEntity
+    public abstract class EntityMapConfig<TEntity> : IEntityMapConfig where TEntity : IEntityBase
     {
         public abstract void Map(BsonClassMap<TEntity> map);
 
         /// <inheritdoc />
         void IEntityMapConfig.Map()
         {
-            if (!BsonClassMap.IsClassMapRegistered(typeof(TEntity)))
+            var entityType = typeof(TEntity);
+            var map = new BsonClassMap<TEntity>();
+            this.Map(map);
+            var noParamCtor = entityType.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, new Type[] { });
+            if (noParamCtor != default)
             {
-                var map = new BsonClassMap<TEntity>();
-                this.Map(map);
-                BsonClassMap.RegisterClassMap(map);
+                map.MapConstructor(noParamCtor);
             }
+            BsonClassMap.RegisterClassMap(map);
         }
     }
     public interface IEntityMapConfig

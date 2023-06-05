@@ -19,13 +19,22 @@ namespace Geex.Common.Gql
             base.Initialize(context);
         }
 
+        
+
         /// <inheritdoc />
         public override IExtendedType GetReturnType(MemberInfo member, bool ignoreAttributes = false)
         {
             IExtendedType result;
-            if (member is PropertyInfo property && property.PropertyType.Name is "ResettableLazy`1" or "Lazy`1")
+            if (member is PropertyInfo property)
             {
-                result = base.GetType(property.PropertyType.GenericTypeArguments[0]);
+                if (property.PropertyType.Name is "ResettableLazy`1" or "Lazy`1")
+                {
+                    result = base.GetType(property.PropertyType.GenericTypeArguments[0]);
+                }
+                else
+                {
+                    result = base.GetReturnType(member, ignoreAttributes);
+                }
             }
             else
             {
@@ -39,10 +48,10 @@ namespace Geex.Common.Gql
             return result;
         }
 
-        public override IEnumerable<MemberInfo> GetMembers(Type type)
-        {
-            return base.GetMembers(type);
-        }
+        //public override IEnumerable<MemberInfo> GetMembers(Type type)
+        //{
+        //    return base.GetMembers(type);
+        //}
 
         public override IEnumerable<object> GetEnumValues(Type enumType)
         {

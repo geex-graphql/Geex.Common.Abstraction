@@ -6,10 +6,16 @@ using HotChocolate;
 
 using MediatR;
 
+using MongoDB.Entities;
+
 namespace Geex.Common.Abstraction.Gql.Inputs
 {
-    public class QueryInput<T> : IRequest<IQueryable<T>>
+    public class QueryInput<T> : IRequest<IQueryable<T>> where T : IEntityBase
     {
+        public QueryInput()
+        {
+
+        }
         public static QueryInput<T> New(Expression<Func<T, bool>> filter = default)
         {
             return new QueryInput<T>(filter);
@@ -20,18 +26,13 @@ namespace Geex.Common.Abstraction.Gql.Inputs
         }
         public QueryInput(params string[] ids)
         {
-            if (!typeof(T).IsAssignableTo<IHasId>())
-            {
-                throw new Exception("id ÁĞ±í²éÑ¯½öÖ§³Ö IHasId");
-            }
-
-            //this.Filter = x => ids.Contains(((IHasId)x).Id);
+            this.Filter = x => ids.Contains(x.Id);
             this.Ids = ids;
         }
         [GraphQLIgnore]
         public Expression<Func<T, bool>> Filter { get; set; }
         /// <summary>
-        /// Ö»ÔÚ×öidÁĞ±í²éÑ¯µÄÊ±ºòÓĞĞ§
+        /// åªåœ¨åšidåˆ—è¡¨æŸ¥è¯¢çš„æ—¶å€™æœ‰æ•ˆ
         /// </summary>
         [GraphQLIgnore]
         public string[] Ids { get; private set; }

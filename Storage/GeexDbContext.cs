@@ -15,7 +15,6 @@ using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using MongoDB.Entities;
 
-using MoreLinq;
 using Nito.AsyncEx.Synchronous;
 using Volo.Abp;
 
@@ -43,7 +42,7 @@ namespace Geex.Common.Abstraction.Storage
                 return default;
             }
 
-            if (entity is Entity geexEntity)
+            if (entity is IEntity geexEntity)
             {
                 if (entity.Id.IsNullOrEmpty())
                 {
@@ -91,10 +90,10 @@ namespace Geex.Common.Abstraction.Storage
                 }
             }
 
-            var entities = Local.TypedCacheDictionary.Values.SelectMany(y => y.Values).OfType<Entity>();
+            var entities = Local.TypedCacheDictionary.Values.SelectMany(y => y.Values).OfType<IEntity>();
             foreach (var entity in entities)
             {
-                entity.Validate();
+                entity.Validate().WaitAndUnwrapException(cancellation);
             }
             return await base.SaveChanges(cancellation);
         }

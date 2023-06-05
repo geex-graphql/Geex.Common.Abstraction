@@ -10,6 +10,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors.Definitions;
 
 using MediatR;
+
 using Volo.Abp.DependencyInjection;
 
 namespace Geex.Common.Abstraction.Gql.Types
@@ -99,5 +100,16 @@ namespace Geex.Common.Abstraction.Gql.Types
 
             base.Configure(descriptor);
         }
+    }
+
+    public class Query
+    {
+    }
+    public class Mutation
+    {
+    }
+
+    public class Subscription
+    {
     }
 }

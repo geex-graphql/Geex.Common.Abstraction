@@ -61,7 +61,7 @@ namespace System
         /// <returns></returns>
         public static string DomainName(this Type value)
         {
-            return value.Assembly.GetName().Name.Split(".").ToList().Last(x => !x.IsIn("Gql", "Api", "Core", "Tests")).ToCamelCase();
+            return value.Namespace.Split(".").ToList().Last(x => !x.IsIn("Gql", "Api", "Core", "Tests")).ToCamelCase();
         }
     }
 

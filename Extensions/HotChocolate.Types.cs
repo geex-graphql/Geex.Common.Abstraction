@@ -6,11 +6,15 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+
+using Fasterflect;
 
 using Geex.Common;
 using Geex.Common.Abstraction;
 using Geex.Common.Abstraction.Auditing;
+using Geex.Common.Abstraction.Gql.Types;
 using Geex.Common.Abstractions;
 using Geex.Common.Authorization;
 using Geex.Common.Gql.Types;
@@ -22,13 +26,12 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 using Humanizer;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 using MongoDB.Bson;
 using MongoDB.Entities;
-
-using Entity = Geex.Common.Abstraction.Storage.Entity;
 
 // ReSharper disable once CheckNamespace
 namespace HotChocolate.Types
@@ -36,10 +39,12 @@ namespace HotChocolate.Types
     public static class HotChocolateTypesExtension
     {
         public static void ConfigEntity<T>(
-            this IObjectTypeDescriptor<T> @this) where T : Entity
+            this IObjectTypeDescriptor<T> @this) where T : Geex.Common.Abstraction.Storage.Entity<T>
         {
             @this.Field(x => x.Id);
             @this.Field(x => x.CreatedOn);
+            @this.Field(x => x.DeleteAsync()).Ignore();
+            @this.Field(x => x.GenerateNewId()).Ignore();
             @this.Field(x => x.ModifiedOn);
             if (typeof(T).IsAssignableTo<IAuditEntity>())
             {
@@ -47,7 +52,7 @@ namespace HotChocolate.Types
                 @this.Field(x => ((IAuditEntity)x).Submittable);
             }
 
-            var getters = typeof(T).GetProperties().Where(x => x.PropertyType.Name == "ResettableLazy`1"||x.PropertyType.Name == "Lazy`1");
+            var getters = typeof(T).GetProperties().Where(x => x.PropertyType.Name == "ResettableLazy`1" || x.PropertyType.Name == "Lazy`1");
             foreach (var getter in getters)
             {
                 var field = @this.Field(getter);
@@ -108,7 +113,7 @@ namespace HotChocolate.Types
       this IRequestExecutorBuilder builder)
         {
             return builder
-                .AddInterfaceType<IEntity>(x =>
+                .AddInterfaceType<IEntityBase>(x =>
                 {
                     x.BindFieldsExplicitly();
                     x.Field(y => y.Id);
@@ -123,9 +128,7 @@ namespace HotChocolate.Types
                 })
                 .AddInterfaceType<IPagedList>()
                 .BindRuntimeType<ObjectId, ObjectIdType>()
-                .BindRuntimeType<dynamic, AnyType>()
-                .BindRuntimeType<object, AnyType>()
-                .BindRuntimeType<Dictionary<string, object>, AnyType>();
+                .BindRuntimeType<JsonNode, JsonNodeType>();
         }
 
 
@@ -137,14 +140,14 @@ namespace HotChocolate.Types
             return prefix;
         }
 
-        public static string GetAggregateAuthorizePrefix<TAggregate>(this IInterfaceTypeDescriptor<TAggregate> @this)
-        {
+        //public static string GetAggregateAuthorizePrefix<TAggregate>(this IInterfaceTypeDescriptor<TAggregate> @this)
+        //{
 
-            var moduleName = typeof(TAggregate).Assembly.GetName().Name.Split(".").ToList().Where(x => !x.IsIn("Gql", "Api", "Core", "Tests")).Last().ToCamelCase();
-            var entityName = typeof(TAggregate).Name.RemovePreFix("I").ToCamelCase();
-            var prefix = $"{moduleName}_query_{entityName}";
-            return prefix;
-        }
+        //    var moduleName = typeof(TAggregate).Assembly.GetName().Name.Split(".").ToList().Where(x => !x.IsIn("Gql", "Api", "Core", "Tests")).Last().ToCamelCase();
+        //    var entityName = typeof(TAggregate).Name.RemovePreFix("I").ToCamelCase();
+        //    var prefix = $"{moduleName}_query_{entityName}";
+        //    return prefix;
+        //}
 
         public static IObjectTypeDescriptor<T> AuthorizeWithDefaultName<T>(this IObjectTypeDescriptor<T> @this)
         {
@@ -152,7 +155,7 @@ namespace HotChocolate.Types
             //获取是哪个类来调用的
             var caller = trace.GetFrame(1).GetMethod();
             var callerDeclaringType = caller.DeclaringType;
-            var moduleName = callerDeclaringType.Assembly.GetName().Name.Split(".").ToList().Where(x => !x.IsIn("Gql", "Api", "Core", "Tests")).Last().ToCamelCase();
+            var moduleName = callerDeclaringType.Namespace.Split(".").ToList().Where(x => !x.IsIn("Gql", "Api", "Core", "Tests")).Last().ToCamelCase();
             var className = callerDeclaringType.Name;
             var prefix = "";
             var logger = (@this as IHasDescriptorContext)!.Context.Services.GetService<ILogger<IObjectTypeDescriptor<T>>>();
@@ -174,7 +177,7 @@ namespace HotChocolate.Types
             var propertyList = typeof(T).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
             foreach (var item in propertyList)
             {
-                var policy = $"{prefix}_{item.Name.ToCamelCase()}";
+                var policy = $"{prefix}_{item.Name.RemovePreFix("Get").ToCamelCase()}";
                 if (AppPermission.List.Any(x => x.Value == policy) && AppPermission.List.Any(x => x.Value == policy))
                 {
                     @this.Field(item).Authorize(policy);
@@ -211,14 +214,37 @@ namespace HotChocolate.Types
             return @this;
         }
 
-
+        private static MethodInfo GetFieldsMethodInfo = typeof(ObjectTypeDescriptor).GetProperty("Fields", BindingFlags.NonPublic | BindingFlags.Instance).GetMethod;
+        public static ICollection<ObjectFieldDescriptor> GetFields<T>(this IObjectTypeDescriptor<T> descriptor)
+        {
+            return GetFieldsMethodInfo.Invoke(descriptor, new object?[] { }) as ICollection<ObjectFieldDescriptor>;
+        }
         public static void AuthorizeFieldsImplicitly<T>(this IObjectTypeDescriptor<T> descriptor) where T : class
         {
-            var propertyList = typeof(T).GetProperties();
+            var propertyList = descriptor.GetFields();
             foreach (var item in propertyList)
             {
                 descriptor.FieldWithDefaultAuthorize(item);
             }
+        }
+
+        public static IObjectFieldDescriptor FieldWithDefaultAuthorize<T>(this IObjectTypeDescriptor<T> @this, IObjectFieldDescriptor fieldDescriptor)
+        {
+            var propertyOrMethod = ((ObjectFieldDefinition)fieldDescriptor.GetPropertyValue("Definition")).Member.DeclaringType;
+            var prefix = @this.GetAggregateAuthorizePrefix();
+            var logger = (@this as IHasDescriptorContext)!.Context.Services.GetService<ILogger<IObjectTypeDescriptor<T>>>();
+            var policy = $"{prefix}_{propertyOrMethod.Name.ToCamelCase()}";
+            if (AppPermission.List.Any(x => x.Value == policy) && AppPermission.List.Any(x => x.Value == policy))
+            {
+                fieldDescriptor = fieldDescriptor.Authorize(policy);
+                logger.LogInformation($@"成功匹配权限规则:{policy} for {propertyOrMethod.DeclaringType?.Name}.{propertyOrMethod.Name}");
+            }
+            else
+            {
+                logger.LogDebug($@"跳过匹配权限规则:{propertyOrMethod.DeclaringType?.Name}.{propertyOrMethod.Name}");
+            }
+
+            return fieldDescriptor;
         }
 
 

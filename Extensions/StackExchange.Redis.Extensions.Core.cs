@@ -58,7 +58,7 @@ namespace StackExchange.Redis.Extensions.Core
         {
             switch (obj)
             {
-                case IEntity entity:
+                case IEntityBase entity:
                     return entity.Id;
                 case IHasId hasId:
                     return hasId.Id;

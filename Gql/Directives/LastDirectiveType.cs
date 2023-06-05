@@ -17,7 +17,7 @@ namespace Geex.Common.Abstraction.Gql.Directives
             descriptor.Name("last");
             descriptor.Location(DirectiveLocation.Field);
             descriptor.Argument("count").Type<IntType>().DefaultValue(1);
-            descriptor.Use(next => context =>
+            descriptor.Use((next, directive) => context =>
             {
                 var result = next.Invoke(context);
                 result.AsTask().Wait();

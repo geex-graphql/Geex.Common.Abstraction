@@ -21,6 +21,7 @@ using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Serialization;
 using HotChocolate.AspNetCore.Voyager;
 using HotChocolate.Data.Filters;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
@@ -50,7 +51,6 @@ using MongoDB.Entities;
 
 using Volo.Abp.Modularity;
 
-using Entity = Geex.Common.Abstraction.Storage.Entity;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection
@@ -63,9 +63,9 @@ namespace Microsoft.Extensions.DependencyInjection
             var mongoUrl = new MongoUrl(commonModuleOptions.ConnectionString) { };
             var mongoSettings = MongoClientSettings.FromUrl(mongoUrl);
             //mongoSettings.LinqProvider = LinqProvider.V3;
-            mongoSettings.ClusterConfigurator = cb =>
+            if (commonModuleOptions.EnableDataLogging)
             {
-                if (commonModuleOptions.EnableDataLogging)
+                mongoSettings.ClusterConfigurator = cb =>
                 {
                     ILogger<IMongoDatabase> logger = default;
                     cb.Subscribe<CommandStartedEvent>(e =>
@@ -77,23 +77,31 @@ namespace Microsoft.Extensions.DependencyInjection
                     {
                         logger?.LogInformation($"MongoDbCommandStartedEvent: {e.CommandName} success in {e.Duration.TotalMilliseconds}ms. Result: {e.Reply.ToJson()}");
                     });
-                }
-            };
+                };
+            }
             mongoSettings.ApplicationName = commonModuleOptions.AppName;
             DB.InitAsync(mongoUrl.DatabaseName ?? commonModuleOptions.AppName, mongoSettings).Wait();
             //builder.AddScoped(x => new DbContext(transactional: true));
             builder.AddScoped<IUnitOfWork>(x => new WrapperUnitOfWork(new GeexDbContext(x, transactional: true, entityTrackingEnabled: true), x.GetService<ILogger<IUnitOfWork>>()));
             // 直接从当前uow提取
-            builder.AddScoped<DbContext>(x => (x.GetService<IUnitOfWork>() as WrapperUnitOfWork)!.DbContext);
+            builder.AddScoped<DbContext>(x =>
+            {
+                var httpContext = x.GetService<IHttpContextAccessor>();
+                if (httpContext?.HttpContext?.Request.Headers.TryGetValue("x-readonly", out var value) == true && value == "1")
+                {
+                    return new GeexDbContext(x, transactional: false, entityTrackingEnabled: false);
+                }
+                return (x.GetService<IUnitOfWork>() as WrapperUnitOfWork)!.DbContext;
+            });
             return builder;
         }
 
         public static IServiceCollection AddHttpResultSerializer<T>(
       this IServiceCollection services, Func<IServiceProvider, T> instance)
-      where T : class, IHttpResultSerializer
+      where T : class, IHttpResponseFormatter
         {
-            services.RemoveAll<IHttpResultSerializer>();
-            services.AddSingleton<IHttpResultSerializer, T>(instance);
+            services.RemoveAll<IHttpResponseFormatter>();
+            services.AddSingleton<IHttpResponseFormatter, T>(instance);
             return services;
         }
         public static object? GetSingletonInstanceOrNull(this IServiceCollection services, Type type) => services.FirstOrDefault<ServiceDescriptor>((Func<ServiceDescriptor, bool>)(d => d.ServiceType == type))?.ImplementationInstance;
@@ -142,22 +150,10 @@ namespace Microsoft.Extensions.DependencyInjection
                         schemaBuilder.Services.AddScoped(typeof(ObjectTypeExtension), rootType);
                     }
                 }
+                GeexModule.RootTypes.AddIfNotContains(rootTypes);
 
                 var classEnumTypes = exportedTypes.Where(x => !x.IsAbstract && x.IsClassEnum() && x.Name != nameof(Enumeration)).ToList();
-                foreach (var classEnumType in classEnumTypes)
-                {
-                    schemaBuilder.OnBeforeSchemaCreate((context, builder) =>
-                        {
-                            if (classEnumType.GetClassEnumRealType().BaseType.GetProperty(nameof(Enumeration.DynamicValues)).GetValue(null).As<IEnumerable<IEnumeration>>().Any())
-                            {
-                                builder.AddConvention(typeof(IFilterConvention), sp => new FilterConventionExtension(x =>
-                                {
-                                    x.BindRuntimeType(classEnumType, typeof(ClassEnumOperationFilterInput<>).MakeGenericType(classEnumType));
-                                }));
-                                builder.BindRuntimeType(classEnumType, typeof(EnumerationType<>).MakeGenericType(classEnumType));
-                            }
-                        });
-                }
+                GeexModule.ClassEnumTypes.AddIfNotContains(classEnumTypes);
 
                 var directiveTypes = exportedTypes.Where(x => AbpTypeExtensions.IsAssignableTo<DirectiveType>(x)).ToList();
                 foreach (var directiveType in directiveTypes)
@@ -174,6 +170,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     schemaBuilder.ConfigureSchemaServices(s => s.TryAdd(ServiceDescriptor.Scoped(typeof(IHttpRequestInterceptor), requestInterceptor)));
                 }
+                GeexModule.DirectiveTypes.AddIfNotContains(classEnumTypes);
             }
             return schemaBuilder;
         }

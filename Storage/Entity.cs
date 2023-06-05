@@ -16,13 +16,23 @@ using MongoDB.Entities;
 
 namespace Geex.Common.Abstraction.Storage
 {
-    public abstract class Entity : MongoDB.Entities.Entity, IModifiedOn, IHasId
+    interface IEntity
     {
-        protected DbContext DbContext
-        {
-            get => base.DbContext as DbContext;
-            set => base.DbContext = value;
-        }
+        [GraphQLIgnore]
+
+        public void AddDomainEvent(params INotification[] events);
+         [GraphQLIgnore]
+        public Task<ValidationResult> Validate(IServiceProvider sp, CancellationToken cancellation = default);
+         /// <summary>
+        /// 用于校验对象的合法性, 会在对象被attach后立即触发
+        /// </summary>
+        /// <returns></returns>
+        [GraphQLIgnore]
+        [Obsolete("框架内部使用, 请勿调用.")]
+        public Task Validate();
+    }
+    public abstract class Entity<T> : EntityBase<T>, IEntity, IModifiedOn, IHasId where T : IEntityBase
+    {
         public DateTimeOffset ModifiedOn { get; set; }
         [GraphQLIgnore]
 
@@ -50,7 +60,7 @@ namespace Geex.Common.Abstraction.Storage
         /// <returns></returns>
         [GraphQLIgnore]
         [Obsolete("框架内部使用, 请勿调用.")]
-        public async Task Validate()
+        public virtual async Task Validate()
         {
             var validationResult = (await this.Validate(this.ServiceProvider));
             if (validationResult != ValidationResult.Success)

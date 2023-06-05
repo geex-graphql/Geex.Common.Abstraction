@@ -4,6 +4,9 @@
     {
         public const string _Sub = "sub";
         public static GeexClaimType Sub { get; } = new GeexClaimType(nameof(Sub), _Sub);
+
+        public const string _ClientId = "client_id";
+        public static GeexClaimType ClientId { get; } = new GeexClaimType(nameof(ClientId), _ClientId);
         public const string _Tenant = "__tenant";
         public static GeexClaimType Tenant { get; } = new GeexClaimType(nameof(Tenant), _Tenant);
         public const string _Nickname = "nick_name";

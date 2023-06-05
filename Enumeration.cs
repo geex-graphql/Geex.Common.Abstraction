@@ -12,6 +12,7 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Entities.Utilities;
 
 namespace Geex.Common.Abstractions
 {
@@ -394,7 +395,7 @@ namespace Geex.Common.Abstractions
     }
 
 
-    public interface IEnumeration
+    public interface IEnumeration : IStringPresentation
     {
         public static Dictionary<string, IEnumeration> ValueCacheDictionary = new Dictionary<string, IEnumeration>();
         public string Name { get; }

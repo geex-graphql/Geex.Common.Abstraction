@@ -26,19 +26,20 @@ namespace Geex.Common
 
         public static Dictionary<int, PropertyInfo> PostFilterFields { get; set; } = new Dictionary<int, PropertyInfo>();
 
-        public override FieldMiddleware CreateExecutor<TEntityType>(NameString argumentName)
+
+        public override FieldMiddleware CreateExecutor<TEntityType>(string argumentName)
         {
             return (FieldMiddleware)(next => (FieldDelegate)(context => ExecuteAsync(next, context)));
 
             async ValueTask ExecuteAsync(FieldDelegate next, IMiddlewareContext context)
             {
                 await next(context).ConfigureAwait(false);
-                IInputField inputField = context.Field.Arguments[(string)argumentName];
+                IInputField inputField = context.Selection.Field.Arguments[(string)argumentName];
                 IValueNode filterValueNode = !context.LocalContextData.ContainsKey(QueryableFilterProvider.ContextValueNodeKey) || !(context.LocalContextData[QueryableFilterProvider.ContextValueNodeKey] is IValueNode valueNode) ? context.ArgumentLiteral<IValueNode>(argumentName) : valueNode;
                 object obj1;
                 bool flag1 = context.LocalContextData.TryGetValue(QueryableFilterProvider.SkipFilteringKey, out obj1) && obj1 is bool flag && flag;
                 object obj2;
-                if (filterValueNode.IsNull() | flag1 || !(inputField.Type is IFilterInputType type) || !context.Field.ContextData.TryGetValue(QueryableFilterProvider.ContextVisitFilterArgumentKey, out obj2) || !(obj2 is VisitFilterArgument visitFilterArgument))
+                if (filterValueNode.IsNull() | flag1 || !(inputField.Type is IFilterInputType type) || !context.Selection.Field.ContextData.TryGetValue(QueryableFilterProvider.ContextVisitFilterArgumentKey, out obj2) || !(obj2 is VisitFilterArgument visitFilterArgument))
                     return;
                 bool inMemory = context.Result is QueryableExecutable<TEntityType> result && result.InMemory || !(context.Result is IQueryable) || context.Result is EnumerableQuery;
                 QueryableFilterContext context1 = visitFilterArgument(filterValueNode, type, inMemory);

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 
 namespace Geex.Common.Abstraction.ExternalInfo
@@ -25,6 +26,6 @@ namespace Geex.Common.Abstraction.ExternalInfo
         /// <summary>
         /// 额外信息
         /// </summary>
-        public Dictionary<string, object> ExternalInfo { get; set; }
+        public JsonNode? ExternalInfo { get; set; }
     }
 }

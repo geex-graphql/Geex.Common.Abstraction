@@ -55,11 +55,11 @@ namespace MongoDB.Driver
             return collection.Find(new ExpressionFilterDefinition<TDocument>(filter), options).FirstOrDefaultAsync();
         }
 
-        public static Task<TDocument> FirstOrDefaultAsync<TDocument>(this IMongoCollection<TDocument> collection, ObjectId id) where TDocument : IEntity
+        public static Task<TDocument> FirstOrDefaultAsync<TDocument>(this IMongoCollection<TDocument> collection, ObjectId id) where TDocument : IEntityBase
         {
             return collection.FirstOrDefaultAsync(id.ToString());
         }
-        public static Task<TDocument> FirstOrDefaultAsync<TDocument>(this IMongoCollection<TDocument> collection, string id) where TDocument : IEntity
+        public static Task<TDocument> FirstOrDefaultAsync<TDocument>(this IMongoCollection<TDocument> collection, string id) where TDocument : IEntityBase
         {
             Ensure.IsNotNull(collection, nameof(collection));
             Ensure.IsNotNull(id, nameof(id));
