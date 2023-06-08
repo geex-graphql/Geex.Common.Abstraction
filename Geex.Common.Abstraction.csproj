@@ -4,9 +4,9 @@
     <TargetFramework>net7.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-    <Version>3.0.43</Version>
+    <!--<Version>3.0.43</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageOutputPath>\\kuforedev\shared\dev_packages</PackageOutputPath>
+    <PackageOutputPath>\\kuforedev\shared\dev_packages</PackageOutputPath>-->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb;.xml</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
@@ -45,7 +45,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Casbin.NET\NetCasbin\NetCasbin.csproj" />
+    <ProjectReference Include="..\Geex.Casbin\NetCasbin\NetCasbin.csproj" />
     <ProjectReference Include="..\MongoDB.Entities\MongoDB.Entities\MongoDB.Entities.csproj" />
   </ItemGroup>
 
