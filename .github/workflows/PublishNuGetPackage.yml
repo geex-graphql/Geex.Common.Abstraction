@@ -116,9 +116,9 @@ jobs:
           path: MongoDB.Entities 
 
       - name: Restore dependencies
-        run: dotnet restore -s ./Geex.Common.Abstraction
+        run: dotnet restore ./Geex.Common.Abstraction.csproj
 
       - name: Build package
-        run: dotnet pack --configuration Release  -s ./Geex.Common.Abstraction
+        run: dotnet pack --configuration Release ./Geex.Common.Abstraction.csproj
 
      
