@@ -22,91 +22,91 @@ jobs:
         with:
           repository: geex-graphql/Geex.Common
           ref: master
-          path: ../Geex.Common
+          path: ../
 
       - name: Checkout Geex.Common.Accounting repository
         uses: actions/checkout@v2
         with:
           repository: geex-graphql/Geex.Common.Accounting
           ref: master
-          path: ../Geex.Common.Accounting
+          path: ../
 
       - name: Checkout Geex.Common.Settings repository
         uses: actions/checkout@v2
         with:
           repository: geex-graphql/Geex.Common.Settings
           ref: master
-          path: ../Geex.Common.Settings 
+          path: ../
 
       - name: Checkout Geex.Common.MultiTenant repository
         uses: actions/checkout@v2
         with:
           repository: geex-graphql/Geex.Common.MultiTenant
           ref: master
-          path: ../Geex.Common.MultiTenant 
+          path: ../
 
       - name: Checkout Geex.Common.Messaging repository
         uses: actions/checkout@v2
         with:
           repository: geex-graphql/Geex.Common.Messaging
           ref: master
-          path: ../Geex.Common.Messaging 
+          path: ../
 
       - name: Checkout Geex.Common.Logging repository
         uses: actions/checkout@v2
         with:
           repository: geex-graphql/Geex.Common.Logging
           ref: master
-          path: ../Geex.Common.Logging 
+          path: ../
 
       - name: Checkout Geex.Common.Identity repository
         uses: actions/checkout@v2
         with:
           repository: geex-graphql/Geex.Common.Identity
           ref: master
-          path: ../Geex.Common.Identity 
+          path: ../
 
       - name: Checkout Geex.Common.BlobStorage repository
         uses: actions/checkout@v2
         with:
           repository: geex-graphql/Geex.Common.BlobStorage
           ref: master
-          path: ../Geex.Common.BlobStorage 
+          path: ../
 
       - name: Checkout Geex.Common.BackgroundJob repository
         uses: actions/checkout@v2
         with:
           repository: geex-graphql/Geex.Common.BackgroundJob
           ref: master
-          path: ../Geex.Common.BackgroundJob 
+          path: ../
 
       - name: Checkout Geex.Common.Authorization repository
         uses: actions/checkout@v2
         with:
           repository: geex-graphql/Geex.Common.Authorization
           ref: master
-          path: ../Geex.Common.Authorization 
+          path: ../
 
       - name: Checkout Geex.Common.Authentication repository
         uses: actions/checkout@v2
         with:
           repository: geex-graphql/Geex.Common.Authentication
           ref: master
-          path: ../Geex.Common.Authentication 
+          path: ../
 
       - name: Checkout Geex.Casbin repository
         uses: actions/checkout@v2
         with:
           repository: geex-graphql/Geex.Casbin
           ref: master
-          path: ../Geex.Casbin 
+          path: ../
 
       - name: Checkout MongoDB.Entities repository
         uses: actions/checkout@v2
         with:
           repository: geexboxs/MongoDB.Entities
           ref: master
-          path: ../MongoDB.Entities 
+          path: ../
 
       - name: Restore dependencies
         run: dotnet restore
